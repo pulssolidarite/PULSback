@@ -104,7 +104,7 @@ REST_FRAMEWORK = {
 CORS_ORIGIN_WHITELIST = [
     "http://localhost:8080",
     "http://localhost:9080",
-    "https://puls-front-prod.herokuapp.com"
+    "https://puls-back-prod.herokuapp.com"
 ]
 
 AUTH_USER_MODEL = 'fleet.User'
