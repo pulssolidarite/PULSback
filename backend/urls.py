@@ -18,6 +18,7 @@ from rest_framework.routers import DefaultRouter
 from fleet.views import *
 from terminal.views import *
 from django.conf.urls.static import static
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 
 router = DefaultRouter()
@@ -31,7 +32,9 @@ router.register(r'payment', PaymentViewSet)
 
 urlpatterns = [
     path('api-auth', include('rest_framework.urls')),
-    path('auth/', CustomObtainAuthToken.as_view()),
+    path('auth/token/', TokenObtainPairView.as_view()),
+    path('auth/token/refresh/', TokenRefreshView.as_view()),
+    path('auth/self/', UserSelf.as_view()),
     path('user/', UserList.as_view()),
     path('user/<int:pk>/', UserDetail.as_view()),
     path('donator/email/<str:email>/', DonatorByEmail.as_view()),

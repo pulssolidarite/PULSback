@@ -20,6 +20,15 @@ import datetime
 
 
 # User Model
+class UserSelf(APIView):
+    def get(self, request, format=None):
+        try:
+            user = request.user
+            serializer = UserSerializer(user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
 class UserList(generics.ListCreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -117,11 +126,3 @@ class StatsByCampaign(APIView):
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-
-# Obtain Token
-class CustomObtainAuthToken(ObtainAuthToken):
-    def post(self, request, *args, **kwargs):
-        response = super(CustomObtainAuthToken, self).post(request, *args, **kwargs)
-        token = Token.objects.get(key=response.data['token'])
-        user = get_object_or_404(User, username=request.data['username'])
-        return Response({'token': token.key, 'user_id': user.id, 'is_admin': user.is_staff, 'is_superadmin': user.is_admin})
