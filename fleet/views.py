@@ -23,6 +23,7 @@ import datetime
 class UserSelf(APIView):
     def get(self, request, format=None):
         try:
+            print(request.user)
             user = request.user
             serializer = UserSerializer(user)
             return Response(serializer.data, status=status.HTTP_200_OK)
