@@ -35,7 +35,7 @@ class GameFile(models.Model):
 class Game(models.Model):
     name = models.CharField(max_length=255)
     path = models.CharField(max_length=255)
-    file = models.OneToOneField(CoreFile, on_delete=models.CASCADE)
+    file = models.OneToOneField(GameFile, on_delete=models.CASCADE)
     core = models.ForeignKey(Core, on_delete=models.CASCADE, related_name="games")
     description = models.TextField()
     logo = models.FileField(blank=True, null=True, upload_to="games/logos/")

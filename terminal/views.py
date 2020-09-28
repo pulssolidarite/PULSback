@@ -1,4 +1,6 @@
+from django.views.generic.list import ListView
 from rest_framework import viewsets
+from rest_framework.generics import CreateAPIView, ListAPIView, ListCreateAPIView, RetrieveDestroyAPIView, RetrieveUpdateDestroyAPIView, UpdateAPIView
 from rest_framework.views import APIView
 from .models import Terminal, Donator, Session, Payment, Game, Core, GameFile, CoreFile
 from .serializers import *
@@ -14,8 +16,18 @@ from .forms import GameFileForm, CoreFileForm
 import json
 
 
-# Terminal Model
-class GameViewSet(viewsets.ModelViewSet):
+# Game Model
+class GameListView(ListAPIView):
+    serializer_class = GameSerializer
+    queryset = Game.objects.filter(is_archived=False)
+    permission_classes = [IsAuthenticated]
+
+class GameCreateView(CreateAPIView):
+    serializer_class = GameLightSerializer
+    queryset = Game.objects.filter(is_archived=False)
+    permission_classes = [IsAuthenticated]
+
+class GameRetrieveUpdateDestroyView(RetrieveDestroyAPIView):
     serializer_class = GameSerializer
     queryset = Game.objects.filter(is_archived=False)
     permission_classes = [IsAuthenticated]
@@ -32,6 +44,10 @@ class GameViewSet(viewsets.ModelViewSet):
         game.save()
         return Response(status=status.HTTP_200_OK)
 
+class GameUpdateView(UpdateAPIView):
+    serializer_class = GameLightSerializer
+    queryset = Game.objects.filter(is_archived=False)
+    permission_classes = [IsAuthenticated]
 
 # Terminal Model
 class TerminalViewSet(viewsets.ModelViewSet):
@@ -271,6 +287,12 @@ class StatsByTerminal(APIView):
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
+
+class CoreViewset(viewsets.ModelViewSet):
+    serializer_class = CoreSerializer
+    queryset = Core.objects.all()
+    permission_classes = [IsAuthenticated]
+    
 
 class GameFileUploadView(APIView):
     parser_classes = (MultiPartParser,)

@@ -26,6 +26,11 @@ class GameFileSerializer(serializers.ModelSerializer):
         model = CoreFile
         fields = '__all__'
 
+class GameLightSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Game
+        fields = '__all__'
+
 class GameSerializer(serializers.ModelSerializer):
     core = CoreSerializer(many=False, read_only=True)
     file = GameFileSerializer(many=False, read_only=True)
