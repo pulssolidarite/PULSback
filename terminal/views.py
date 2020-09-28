@@ -1,14 +1,16 @@
 from rest_framework import viewsets
 from rest_framework.views import APIView
-from .models import Terminal, Donator, Session, Payment, Game
+from .models import Terminal, Donator, Session, Payment, Game, Core, GameFile, CoreFile
 from .serializers import *
 from fleet.serializers import CampaignSerializer
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework import status
 from rest_framework.response import Response
+from rest_framework.parsers import MultiPartParser
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Avg, Sum
 from django.shortcuts import get_object_or_404
+from .forms import GameFileForm, CoreFileForm
 import json
 
 
@@ -268,3 +270,31 @@ class StatsByTerminal(APIView):
             return Response(serializer, status=status.HTTP_200_OK)
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
+
+
+class GameFileUploadView(APIView):
+    parser_classes = (MultiPartParser,)
+
+    def post(self, request, format=None):
+        if request.FILES['file']:
+            form = GameFileForm(request.POST, request.FILES)
+            if form.is_valid():
+                file = form.save()
+                return Response(GameFileSerializer(file).data, status=status.HTTP_201_CREATED)
+            else:
+                print(form.errors)
+                return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+class CoreFileUploadView(APIView):
+    parser_classes = (MultiPartParser,)
+
+    def post(self, request, format=None):
+        if request.FILES['file']:
+            form = CoreFileForm(request.POST, request.FILES)
+            if form.is_valid():
+                file = form.save()
+                return Response(CoreFileSerializer(file).data, status=status.HTTP_201_CREATED)
+            else:
+                print(form.errors)
+                return Response(status=status.HTTP_400_BAD_REQUEST)

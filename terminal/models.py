@@ -4,9 +4,39 @@ from fleet.models import Campaign
 from django.db.models import Avg, Sum
 
 
+class CoreFile(models.Model):
+    file = models.FileField(upload_to="games/cores/")
+    date_added = models.DateTimeField(auto_now_add=True)
+    last_update = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return 'Fichier Core n° {}'.format(self.pk)
+
+
+class Core(models.Model):
+    name = models.CharField(max_length=255)
+    path = models.CharField(max_length=255)
+    file = models.OneToOneField(CoreFile, on_delete=models.CASCADE)
+    description = models.TextField()
+    
+    def __str__(self):
+        return self.name
+
+
+class GameFile(models.Model):
+    file = models.FileField(upload_to="games/roms/")
+    date_added = models.DateTimeField(auto_now_add=True)
+    last_update = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return 'Fichier Rom n° {}'.format(self.pk)
+
+
 class Game(models.Model):
     name = models.CharField(max_length=255)
     path = models.CharField(max_length=255)
+    file = models.OneToOneField(CoreFile, on_delete=models.CASCADE)
+    core = models.ForeignKey(Core, on_delete=models.CASCADE, related_name="games")
     description = models.TextField()
     logo = models.FileField(blank=True, null=True, upload_to="games/logos/")
     is_archived = models.BooleanField(default=False)

@@ -1,12 +1,34 @@
 import datetime
 from rest_framework import serializers
-from .models import Terminal, Donator, Session, Payment, Game
+from .models import Terminal, Donator, Session, Payment, Game, GameFile, Core, CoreFile
 from fleet.models import Campaign
 from fleet.serializers import CampaignSerializer, UserFullSerializer
 
 
-# Serializer pour le model Terminal
+
+# Serializer pour le model Core
+class CoreFileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CoreFile
+        fields = '__all__'
+
+class CoreSerializer(serializers.ModelSerializer):
+    file = CoreFileSerializer(many=False, read_only=True)
+
+    class Meta:
+        model = Core
+        fields = '__all__'
+
+
+# Serializer pour le model Game
+class GameFileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CoreFile
+        fields = '__all__'
+
 class GameSerializer(serializers.ModelSerializer):
+    core = CoreSerializer(many=False, read_only=True)
+    file = GameFileSerializer(many=False, read_only=True)
     nb_terminals = serializers.ReadOnlyField()
     total_donations = serializers.ReadOnlyField()
 
