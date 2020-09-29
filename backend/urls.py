@@ -56,12 +56,7 @@ urlpatterns = [
     path('campaign/<int:id>/stats/', StatsByCampaign.as_view()),
     path('campaign/<int:id>/full/', StatsByCampaign.as_view()),
     path('campaigns/full/', StatsByCampaign.as_view()),
-    path('game/', GameListView.as_view()),
-    path('game/create/', GameCreateView.as_view()),
-    path('game/<int:pk>/', GameRetrieveUpdateDestroyView.as_view()),
-    path('game/<int:pk>/update/', GameUpdateView.as_view()),
-    path('game/upload/', GameFileUploadView.as_view()),
-    path('game/core/upload/', CoreFileUploadView.as_view()),
+    path('game/', include("game.urls")),
     path('core/upload/', CoreFileUploadView.as_view()),
     path('dashboard/', DashboardStats.as_view())
 ]

@@ -16,38 +16,6 @@ from .forms import GameFileForm, CoreFileForm
 import json
 
 
-# Game Model
-class GameListView(ListAPIView):
-    serializer_class = GameSerializer
-    queryset = Game.objects.filter(is_archived=False)
-    permission_classes = [IsAuthenticated]
-
-class GameCreateView(CreateAPIView):
-    serializer_class = GameLightSerializer
-    queryset = Game.objects.filter(is_archived=False)
-    permission_classes = [IsAuthenticated]
-
-class GameRetrieveUpdateDestroyView(RetrieveDestroyAPIView):
-    serializer_class = GameSerializer
-    queryset = Game.objects.filter(is_archived=False)
-    permission_classes = [IsAuthenticated]
-
-    def retrieve(self, request, *args, **kwargs):
-        instance = get_object_or_404(Game, pk=kwargs['pk'])
-        serializer = self.get_serializer(instance)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    def destroy(self, request, pk=None):
-        game = get_object_or_404(Game, pk=pk)
-        game.is_archived = True
-        game.terminals.clear()
-        game.save()
-        return Response(status=status.HTTP_200_OK)
-
-class GameUpdateView(UpdateAPIView):
-    serializer_class = GameLightSerializer
-    queryset = Game.objects.filter(is_archived=False)
-    permission_classes = [IsAuthenticated]
 
 # Terminal Model
 class TerminalViewSet(viewsets.ModelViewSet):
