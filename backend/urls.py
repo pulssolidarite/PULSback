@@ -20,6 +20,7 @@ from fleet.views import *
 from terminal.views import *
 from django.conf.urls.static import static
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from game.views import CoreViewset
 
 
 router = DefaultRouter()
@@ -57,7 +58,6 @@ urlpatterns = [
     path('campaign/<int:id>/full/', StatsByCampaign.as_view()),
     path('campaigns/full/', StatsByCampaign.as_view()),
     path('game/', include("game.urls")),
-    path('core/upload/', CoreFileUploadView.as_view()),
     path('dashboard/', DashboardStats.as_view())
 ]
 

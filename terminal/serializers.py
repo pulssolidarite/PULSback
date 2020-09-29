@@ -1,6 +1,7 @@
 import datetime
 from rest_framework import serializers
-from .models import Terminal, Donator, Session, Payment, Game, GameFile, Core, CoreFile
+from .models import Terminal, Donator, Session, Payment
+from game.models import Game, Core, GameFile, CoreFile
 from fleet.models import Campaign
 from fleet.serializers import CampaignSerializer, UserFullSerializer
 from game.serializers import GameSerializer

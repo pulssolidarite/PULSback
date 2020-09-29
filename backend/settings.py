@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'storages',
     'fleet',
     'terminal',
+    'game',
     'rest_framework',
     'corsheaders'
 ]
