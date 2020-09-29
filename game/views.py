@@ -21,7 +21,7 @@ class GameCreateView(CreateAPIView):
     queryset = Game.objects.filter(is_archived=False)
     permission_classes = [IsAuthenticated]
 
-class GameRetrieveUpdateDestroyView(RetrieveDestroyAPIView):
+class GameRetrieveDestroyView(RetrieveDestroyAPIView):
     serializer_class = GameSerializer
     queryset = Game.objects.filter(is_archived=False)
     permission_classes = [IsAuthenticated]
@@ -58,9 +58,24 @@ class GameFileUploadView(APIView):
 
 
 # Core Model
-class CoreViewset(viewsets.ModelViewSet):
+class CoreListView(ListAPIView):
     serializer_class = CoreSerializer
-    queryset = Core.objects.all()
+    queryset = Core.objects.filter()
+    permission_classes = [IsAuthenticated]
+
+class CoreCreateView(CreateAPIView):
+    serializer_class = CoreLightSerializer
+    queryset = Core.objects.filter()
+    permission_classes = [IsAuthenticated]
+
+class CoreRetrieveDestroyView(RetrieveDestroyAPIView):
+    serializer_class = CoreSerializer
+    queryset = Core.objects.filter()
+    permission_classes = [IsAuthenticated]
+
+class CoreUpdateView(UpdateAPIView):
+    serializer_class = CoreLightSerializer
+    queryset = Core.objects.filter()
     permission_classes = [IsAuthenticated]
     
 

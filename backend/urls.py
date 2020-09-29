@@ -20,13 +20,11 @@ from fleet.views import *
 from terminal.views import *
 from django.conf.urls.static import static
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from game.views import CoreViewset
 
 
 router = DefaultRouter()
 router.register(r'customer', CustomerViewSet)
 router.register(r'campaign', CampaignViewSet)
-router.register(r'core', CoreViewset)
 router.register(r'terminal', TerminalViewSet)
 router.register(r'donator', DonatorViewSet)
 router.register(r'session', SessionViewSet)

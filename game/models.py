@@ -19,6 +19,10 @@ class Core(models.Model):
     def __str__(self):
         return self.name
 
+    @property
+    def nb_games(self):
+        return self.games.count() or 0
+
 
 class GameFile(models.Model):
     file = models.FileField(upload_to="games/roms/")

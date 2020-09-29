@@ -11,7 +11,13 @@ class CoreFileSerializer(serializers.ModelSerializer):
 
 class CoreSerializer(serializers.ModelSerializer):
     file = CoreFileSerializer(many=False, read_only=True)
+    nb_games = serializers.ReadOnlyField()
 
+    class Meta:
+        model = Core
+        fields = '__all__'
+
+class CoreLightSerializer(serializers.ModelSerializer):
     class Meta:
         model = Core
         fields = '__all__'
