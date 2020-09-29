@@ -9,8 +9,14 @@ class CoreFileSerializer(serializers.ModelSerializer):
         model = CoreFile
         fields = '__all__'
 
+class BiosFileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BiosFile
+        fields = '__all__'
+
 class CoreSerializer(serializers.ModelSerializer):
     file = CoreFileSerializer(many=False, read_only=True)
+    bios = BiosFileSerializer(many=False, read_only=True)
     nb_games = serializers.ReadOnlyField()
 
     class Meta:
@@ -37,6 +43,7 @@ class GameLightSerializer(serializers.ModelSerializer):
 class GameSerializer(serializers.ModelSerializer):
     core = CoreSerializer(many=False, read_only=True)
     file = GameFileSerializer(many=False, read_only=True)
+    file2 = GameFileSerializer(many=False, read_only=True)
     nb_terminals = serializers.ReadOnlyField()
 
     class Meta:

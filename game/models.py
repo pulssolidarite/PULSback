@@ -10,10 +10,20 @@ class CoreFile(models.Model):
         return 'Fichier Core n° {}'.format(self.pk)
 
 
+class BiosFile(models.Model):
+    file = models.FileField(upload_to="games/bios/")
+    date_added = models.DateTimeField(auto_now_add=True)
+    last_update = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return 'Fichier Bios n° {}'.format(self.pk)
+
+
 class Core(models.Model):
     name = models.CharField(max_length=255)
     path = models.CharField(max_length=255)
     file = models.OneToOneField(CoreFile, on_delete=models.CASCADE)
+    bios = models.OneToOneField(BiosFile, on_delete=models.CASCADE)
     description = models.TextField()
     
     def __str__(self):
@@ -36,8 +46,8 @@ class GameFile(models.Model):
 class Game(models.Model):
     name = models.CharField(max_length=255)
     path = models.CharField(max_length=255)
-    file = models.OneToOneField(GameFile, on_delete=models.CASCADE)
-    core = models.ForeignKey(Core, on_delete=models.CASCADE, related_name="games")
+    file = models.OneToOneField(GameFile, on_delete=models.CASCADE, related_name="rom")
+    core = models.ForeignKey(Core, on_delete=models.SET_NULL, null=True, blank=True, related_name="games")
     description = models.TextField()
     logo = models.FileField(blank=True, null=True, upload_to="games/logos/")
     is_archived = models.BooleanField(default=False)

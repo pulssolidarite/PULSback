@@ -91,3 +91,17 @@ class CoreFileUploadView(APIView):
             else:
                 print(form.errors)
                 return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+class BiosFileUploadView(APIView):
+    parser_classes = (MultiPartParser,)
+
+    def post(self, request, format=None):
+        if request.FILES['file']:
+            form = BiosFileForm(request.POST, request.FILES)
+            if form.is_valid():
+                file = form.save()
+                return Response(BiosFileSerializer(file).data, status=status.HTTP_201_CREATED)
+            else:
+                print(form.errors)
+                return Response(status=status.HTTP_400_BAD_REQUEST)

@@ -1,5 +1,5 @@
 from django import forms
-from .models import GameFile, CoreFile
+from .models import BiosFile, GameFile, CoreFile
 
 
 class GameFileForm(forms.ModelForm):
@@ -10,4 +10,9 @@ class GameFileForm(forms.ModelForm):
 class CoreFileForm(forms.ModelForm):
     class Meta:
         model = CoreFile
+        fields = ['file']
+
+class BiosFileForm(forms.ModelForm):
+    class Meta:
+        model = BiosFile
         fields = ['file']

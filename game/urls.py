@@ -12,4 +12,5 @@ urlpatterns = [
     path('core/<int:pk>/', CoreRetrieveDestroyView.as_view()),
     path('core/<int:pk>/update/', CoreUpdateView.as_view()),
     path('core/upload/', CoreFileUploadView.as_view()),
+    path('core/bios/upload/', BiosFileUploadView.as_view()),
 ]
