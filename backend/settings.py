@@ -26,7 +26,7 @@ SECRET_KEY = os.environ['SECRET_KEY']
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = (os.environ['DEBUG'] == 'True')
 
-ALLOWED_HOSTS = ['puls-back-prod.herokuapp.com']
+ALLOWED_HOSTS = ['puls-back-preprod.herokuapp.com']
 
 
 # Application definition
@@ -41,9 +41,9 @@ INSTALLED_APPS = [
     'storages',
     'fleet',
     'terminal',
+    'game',
     'rest_framework',
-    'corsheaders',
-    'rest_framework.authtoken'
+    'corsheaders'
 ]
 
 MIDDLEWARE = [
@@ -95,7 +95,7 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ),

@@ -13,25 +13,29 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from fleet.views import *
 from terminal.views import *
 from django.conf.urls.static import static
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 
 router = DefaultRouter()
 router.register(r'customer', CustomerViewSet)
 router.register(r'campaign', CampaignViewSet)
-router.register(r'game', GameViewSet)
 router.register(r'terminal', TerminalViewSet)
 router.register(r'donator', DonatorViewSet)
 router.register(r'session', SessionViewSet)
 router.register(r'payment', PaymentViewSet)
 
 urlpatterns = [
+    path('admin/', admin.site.urls),
     path('api-auth', include('rest_framework.urls')),
-    path('auth/', CustomObtainAuthToken.as_view()),
+    path('auth/token/', TokenObtainPairView.as_view()),
+    path('auth/token/refresh/', TokenRefreshView.as_view()),
+    path('auth/self/', UserSelf.as_view()),
     path('user/', UserList.as_view()),
     path('user/<int:pk>/', UserDetail.as_view()),
     path('donator/email/<str:email>/', DonatorByEmail.as_view()),
@@ -51,6 +55,7 @@ urlpatterns = [
     path('campaign/<int:id>/stats/', StatsByCampaign.as_view()),
     path('campaign/<int:id>/full/', StatsByCampaign.as_view()),
     path('campaigns/full/', StatsByCampaign.as_view()),
+    path('game/', include("game.urls")),
     path('dashboard/', DashboardStats.as_view())
 ]
 
