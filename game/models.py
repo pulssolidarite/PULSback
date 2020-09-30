@@ -23,6 +23,7 @@ class Core(models.Model):
     name = models.CharField(max_length=255)
     path = models.CharField(max_length=255)
     file = models.OneToOneField(CoreFile, on_delete=models.CASCADE)
+    bios_path = models.CharField(max_length=255)
     bios = models.OneToOneField(BiosFile, on_delete=models.CASCADE)
     description = models.TextField()
     
