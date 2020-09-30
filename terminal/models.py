@@ -2,25 +2,7 @@ from django.db import models
 from django.conf import settings
 from fleet.models import Campaign
 from django.db.models import Avg, Sum
-
-
-class Game(models.Model):
-    name = models.CharField(max_length=255)
-    path = models.CharField(max_length=255)
-    description = models.TextField()
-    logo = models.FileField(blank=True, null=True, upload_to="games/logos/")
-    is_archived = models.BooleanField(default=False)
-
-    @property
-    def nb_terminals(self):
-        return self.terminals.count()
-
-    @property
-    def total_donations(self):
-        return Payment.objects.filter(game=self.pk, status="Accepted").aggregate(Sum('amount'))['amount__sum']
-
-    def __str__(self):
-        return self.name
+from game.models import Game
 
 
 class Terminal(models.Model):

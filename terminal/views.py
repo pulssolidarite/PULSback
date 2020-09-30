@@ -1,34 +1,20 @@
+from django.views.generic.list import ListView
 from rest_framework import viewsets
+from rest_framework.generics import CreateAPIView, ListAPIView, ListCreateAPIView, RetrieveDestroyAPIView, RetrieveUpdateDestroyAPIView, UpdateAPIView
 from rest_framework.views import APIView
-from .models import Terminal, Donator, Session, Payment, Game
+from .models import Terminal, Donator, Session, Payment
+from game.models import Game, Core, GameFile, CoreFile
 from .serializers import *
 from fleet.serializers import CampaignSerializer
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework import status
 from rest_framework.response import Response
+from rest_framework.parsers import MultiPartParser
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Avg, Sum
 from django.shortcuts import get_object_or_404
 import json
 
-
-# Terminal Model
-class GameViewSet(viewsets.ModelViewSet):
-    serializer_class = GameSerializer
-    queryset = Game.objects.filter(is_archived=False)
-    permission_classes = [IsAuthenticated]
-
-    def retrieve(self, request, *args, **kwargs):
-        instance = get_object_or_404(Game, pk=kwargs['pk'])
-        serializer = self.get_serializer(instance)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    def destroy(self, request, pk=None):
-        game = get_object_or_404(Game, pk=pk)
-        game.is_archived = True
-        game.terminals.clear()
-        game.save()
-        return Response(status=status.HTTP_200_OK)
 
 
 # Terminal Model

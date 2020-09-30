@@ -1,29 +1,10 @@
 import datetime
 from rest_framework import serializers
-from .models import Terminal, Donator, Session, Payment, Game
+from .models import Terminal, Donator, Session, Payment
+from game.models import Game, Core, GameFile, CoreFile
 from fleet.models import Campaign
 from fleet.serializers import CampaignSerializer, UserFullSerializer
-
-
-# Serializer pour le model Terminal
-class GameSerializer(serializers.ModelSerializer):
-    nb_terminals = serializers.ReadOnlyField()
-    total_donations = serializers.ReadOnlyField()
-
-    class Meta:
-        model = Game
-        fields = '__all__'
-
-    def get_logo_url(self, game):
-        if game.logo:
-            if self.context.get('request'):
-                request = self.context.get('request')
-                logo_url = game.logo.url
-                return request.build_absolute_uri(logo_url)
-            else:
-                return game.logo.url
-        else:
-            return game.logo
+from game.serializers import GameSerializer
 
 
 # Serializer pour le model Donator

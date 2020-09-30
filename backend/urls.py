@@ -25,7 +25,6 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 router = DefaultRouter()
 router.register(r'customer', CustomerViewSet)
 router.register(r'campaign', CampaignViewSet)
-router.register(r'game', GameViewSet)
 router.register(r'terminal', TerminalViewSet)
 router.register(r'donator', DonatorViewSet)
 router.register(r'session', SessionViewSet)
@@ -56,6 +55,7 @@ urlpatterns = [
     path('campaign/<int:id>/stats/', StatsByCampaign.as_view()),
     path('campaign/<int:id>/full/', StatsByCampaign.as_view()),
     path('campaigns/full/', StatsByCampaign.as_view()),
+    path('game/', include("game.urls")),
     path('dashboard/', DashboardStats.as_view())
 ]
 
