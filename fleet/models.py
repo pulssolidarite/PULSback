@@ -35,6 +35,8 @@ class Campaign(models.Model):
     text20 = models.TextField(null=True, blank=True)
     photo30 = models.FileField(null=True, blank=True, upload_to="campaigns/actions/")
     text30 = models.TextField(null=True, blank=True)
+    photo50 = models.FileField(null=True, blank=True, upload_to="campaigns/actions/")
+    text50 = models.TextField(null=True, blank=True)
     goal_amount = models.IntegerField()
     video = models.CharField(max_length=255, null=True, blank=True)
     link = models.CharField(max_length=255)
