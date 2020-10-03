@@ -67,7 +67,7 @@ class Game(models.Model):
     btn_start = models.CharField(max_length=255, default="Start", null=True, blank=True)
     btn_select = models.CharField(max_length=255, default="Select", null=True, blank=True)
     type = models.CharField(max_length=255, default="Unique", null=True, blank=True)
-    nb_players = models.IntegerField(max_length=255, default=1, null=True, blank=True)
+    nb_players = models.IntegerField(default=1, null=True, blank=True)
 
     @property
     def nb_terminals(self):
