@@ -64,6 +64,8 @@ class Game(models.Model):
     btn_b = models.CharField(max_length=255, default="Rien", null=True, blank=True)
     btn_l = models.CharField(max_length=255, default="Rien", null=True, blank=True)
     btn_r = models.CharField(max_length=255, default="Rien", null=True, blank=True)
+    btn_start = models.CharField(max_length=255, default="Start", null=True, blank=True)
+    btn_select = models.CharField(max_length=255, default="Select", null=True, blank=True)
 
     @property
     def nb_terminals(self):
