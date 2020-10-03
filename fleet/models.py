@@ -5,7 +5,7 @@ import datetime
 
 
 class Customer(models.Model):
-    company = models.CharField(max_length=255, null=True)
+    company = models.CharField(max_length=255)
     representative = models.CharField(max_length=255, null=True)
     sales_type = models.CharField(max_length=1, default="A", null=True)
     maintenance_type = models.CharField(max_length=255, null=True)
@@ -13,12 +13,15 @@ class Customer(models.Model):
     is_archived = models.BooleanField(default=False)
 
     def __str__(self):
-        return self.company
+        return self.company or ""
 
 
 class User(AbstractUser):
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name="users", null=True)
     is_admin = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.username
 
 
 class Campaign(models.Model):
@@ -38,7 +41,9 @@ class Campaign(models.Model):
     photo50 = models.FileField(null=True, blank=True, upload_to="campaigns/actions/")
     text50 = models.TextField(null=True, blank=True)
     goal_amount = models.IntegerField()
+    is_video = models.BooleanField(default=True)
     video = models.CharField(max_length=255, null=True, blank=True)
+    featured_image = models.FileField(null=True, blank=True, upload_to="campaigns/images/")
     link = models.CharField(max_length=255)
     logo = models.FileField(null=True, blank=True, upload_to="campaigns/logos/")
     is_archived = models.BooleanField(default=False)
