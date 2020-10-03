@@ -33,6 +33,7 @@ class PaymentForTerminalSerializer(serializers.ModelSerializer):
 class TerminalSerializer(serializers.ModelSerializer):
     campaigns = serializers.PrimaryKeyRelatedField(queryset=Campaign.objects.all(), many=True, allow_null=True)
     games = serializers.PrimaryKeyRelatedField(queryset=Game.objects.all(), many=True, allow_null=True)
+    subscription_type = serializers.ReadOnlyField()
     #owner = UserSerializer(many=False, read_only=True)
 
     class Meta:
@@ -55,6 +56,7 @@ class TerminalSemiSerializer(serializers.Serializer):
     avg_donation = serializers.ReadOnlyField()
     avg_timesession = serializers.ReadOnlyField()
     avg_gametimesession = serializers.ReadOnlyField()
+    subscription_type = serializers.ReadOnlyField()
 
 
 # Serializer pour le model Terminal
@@ -73,6 +75,7 @@ class TerminalFullSerializer(serializers.Serializer):
     avg_donation = serializers.ReadOnlyField()
     avg_timesession = serializers.ReadOnlyField()
     avg_gametimesession = serializers.ReadOnlyField()
+    subscription_type = serializers.ReadOnlyField()
 
 
 

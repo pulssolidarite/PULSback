@@ -8,7 +8,6 @@ class Customer(models.Model):
     company = models.CharField(max_length=255)
     representative = models.CharField(max_length=255, null=True)
     sales_type = models.CharField(max_length=1, default="A", null=True)
-    maintenance_type = models.CharField(max_length=255, null=True)
     is_active = models.BooleanField(default=True)
     is_archived = models.BooleanField(default=False)
 
@@ -43,7 +42,6 @@ class Campaign(models.Model):
     goal_amount = models.IntegerField()
     is_video = models.BooleanField(default=True)
     video = models.CharField(max_length=255, null=True, blank=True)
-    featured_image = models.FileField(null=True, blank=True, upload_to="campaigns/images/")
     link = models.CharField(max_length=255)
     logo = models.FileField(null=True, blank=True, upload_to="campaigns/logos/")
     is_archived = models.BooleanField(default=False)

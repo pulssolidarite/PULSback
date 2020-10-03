@@ -50,6 +50,8 @@ class Game(models.Model):
     file = models.OneToOneField(GameFile, on_delete=models.CASCADE, related_name="rom")
     core = models.ForeignKey(Core, on_delete=models.SET_NULL, null=True, blank=True, related_name="games")
     description = models.TextField()
+    is_video = models.BooleanField(default=False)
+    video = models.CharField(max_length=255, null=True, blank=True)
     logo = models.FileField(blank=True, null=True, upload_to="games/logos/")
     is_archived = models.BooleanField(default=False)
 
