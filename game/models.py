@@ -54,6 +54,16 @@ class Game(models.Model):
     video = models.CharField(max_length=255, null=True, blank=True)
     logo = models.FileField(blank=True, null=True, upload_to="games/logos/")
     is_archived = models.BooleanField(default=False)
+    j_up = models.CharField(max_length=255, default="Haut", null=True, blank=True)
+    j_down = models.CharField(max_length=255, default="Bas", null=True, blank=True)
+    j_right = models.CharField(max_length=255, default="Droite", null=True, blank=True)
+    j_left = models.CharField(max_length=255, default="Gauche", null=True, blank=True)
+    btn_x = models.CharField(max_length=255, default="Rien", null=True, blank=True)
+    btn_y = models.CharField(max_length=255, default="Rien", null=True, blank=True)
+    btn_a = models.CharField(max_length=255, default="Rien", null=True, blank=True)
+    btn_b = models.CharField(max_length=255, default="Rien", null=True, blank=True)
+    btn_l = models.CharField(max_length=255, default="Rien", null=True, blank=True)
+    btn_r = models.CharField(max_length=255, default="Rien", null=True, blank=True)
 
     @property
     def nb_terminals(self):
