@@ -43,6 +43,7 @@ urlpatterns = [
     path('customer/<int:pk>/deactivate/', DeactivateCustomer.as_view()),
     path('terminal/<int:pk>/activate/', ActivateTerminal.as_view()),
     path('terminal/<int:pk>/deactivate/', DeactivateTerminal.as_view()),
+    path('terminal/<int:pk>/archive/', ArchiveTerminal.as_view()),
     path('terminal/<int:pk>/campaigns/', CampaignsByTerminal.as_view()),
     path('terminal/<int:pk>/games/', GamesByTerminal.as_view()),
     path('terminal/mine/', TerminalByOwner.as_view()),

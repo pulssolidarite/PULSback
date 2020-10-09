@@ -19,7 +19,7 @@ import json
 
 # Terminal Model
 class TerminalViewSet(viewsets.ModelViewSet):
-    queryset = Terminal.objects.all()
+    queryset = Terminal.objects.filter(is_archived=False)
     permission_classes = [IsAuthenticated]
     serializer_class = TerminalSerializer
 
@@ -29,7 +29,7 @@ class TerminalViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def list(self, request, *args, **kwargs):
-        queryset = Terminal.objects.all()
+        queryset = Terminal.objects.filter(is_archived=False)
         serializer = TerminalSemiSerializer(queryset, many=True, read_only=True)
         return Response(serializer.data)
 
@@ -152,7 +152,9 @@ class ActivateTerminal(APIView):
         try:
             terminal = Terminal.objects.get(pk=pk)
             terminal.is_active = True
+            terminal.owner.is_active = True
             terminal.save()
+            terminal.owner.save()
             serializer = TerminalSerializer(terminal)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except ObjectDoesNotExist:
@@ -166,14 +168,32 @@ class DeactivateTerminal(APIView):
         try:
             terminal = Terminal.objects.get(pk=pk)
             terminal.is_active = False
+            terminal.owner.is_active = False
             terminal.is_on = False
             terminal.is_playing = False
             terminal.save()
+            terminal.owner.save()
             serializer = TerminalSerializer(terminal)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
+
+class ArchiveTerminal(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request, pk, format=None):
+        try:
+            terminal = Terminal.objects.get(pk=pk)
+            terminal.is_active = False
+            terminal.owner.is_active = False
+            terminal.is_archived = True
+            terminal.save()
+            terminal.owner.save()
+            serializer = TerminalSerializer(terminal)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
 
 # Donator Model
 class DonatorViewSet(viewsets.ModelViewSet):

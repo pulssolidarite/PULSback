@@ -14,10 +14,17 @@ class Terminal(models.Model):
     is_active = models.BooleanField(default=False)
     is_on = models.BooleanField(default=False)
     is_playing = models.BooleanField(default=False)
+    is_archived = models.BooleanField(default=False)
+    play_timer = models.BigIntegerField(default=10)
+    
+    @property
+    def subscription_type(self):
+        if self.owner.customer:
+            return self.owner.customer.sales_type or None
 
     @property
     def total_donations(self):
-        return Payment.objects.filter(campaign=self.pk, status="Accepted").aggregate(Sum('amount'))['amount__sum']
+        return Payment.objects.filter(terminal=self.pk, status="Accepted").aggregate(Sum('amount'))['amount__sum']
 
     @property
     def last_donations(self):
