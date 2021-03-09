@@ -22,23 +22,31 @@ class User(AbstractUser):
     def __str__(self):
         return self.username
 
+class DonationStep(models.Model):
+    photo = models.FileField(null=True, blank=True, upload_to="campaigns/actions/")
+    text = models.TextField(null=True, blank=True)
+    amount = IntegerField()
+    campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, related_name="donationSteps", null=True)
+
+    def __str__(self):
+        return self.text
 
 class Campaign(models.Model):
     author = models.ForeignKey(User, on_delete=models.PROTECT, null=True, related_name="campaigns")
     name = models.CharField(max_length=255)
     description = models.TextField()
-    photo1 = models.FileField(null=True, blank=True, upload_to="campaigns/actions/")
-    text1 = models.TextField(null=True, blank=True)
-    photo5 = models.FileField(null=True, blank=True, upload_to="campaigns/actions/")
-    text5 = models.TextField(null=True, blank=True)
-    photo10 = models.FileField(null=True, blank=True, upload_to="campaigns/actions/")
-    text10 = models.TextField(null=True, blank=True)
-    photo20 = models.FileField(null=True, blank=True, upload_to="campaigns/actions/")
-    text20 = models.TextField(null=True, blank=True)
-    photo30 = models.FileField(null=True, blank=True, upload_to="campaigns/actions/")
-    text30 = models.TextField(null=True, blank=True)
-    photo50 = models.FileField(null=True, blank=True, upload_to="campaigns/actions/")
-    text50 = models.TextField(null=True, blank=True)
+    # photo1 = models.FileField(null=True, blank=True, upload_to="campaigns/actions/")
+    # text1 = models.TextField(null=True, blank=True)
+    # photo5 = models.FileField(null=True, blank=True, upload_to="campaigns/actions/")
+    # text5 = models.TextField(null=True, blank=True)
+    # photo10 = models.FileField(null=True, blank=True, upload_to="campaigns/actions/")
+    # text10 = models.TextField(null=True, blank=True)
+    # photo20 = models.FileField(null=True, blank=True, upload_to="campaigns/actions/")
+    # text20 = models.TextField(null=True, blank=True)
+    # photo30 = models.FileField(null=True, blank=True, upload_to="campaigns/actions/")
+    # text30 = models.TextField(null=True, blank=True)
+    # photo50 = models.FileField(null=True, blank=True, upload_to="campaigns/actions/")
+    # text50 = models.TextField(null=True, blank=True)
     goal_amount = models.IntegerField()
     is_video = models.BooleanField(default=True)
     video = models.CharField(max_length=255, null=True, blank=True)
