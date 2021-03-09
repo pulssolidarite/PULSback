@@ -22,15 +22,6 @@ class User(AbstractUser):
     def __str__(self):
         return self.username
 
-class DonationStep(models.Model):
-    photo = models.FileField(null=True, blank=True, upload_to="campaigns/actions/")
-    text = models.TextField(null=True, blank=True)
-    amount = models.IntegerField()
-    campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, related_name="donationSteps", null=True)
-
-    def __str__(self):
-        return self.text
-
 class Campaign(models.Model):
     author = models.ForeignKey(User, on_delete=models.PROTECT, null=True, related_name="campaigns")
     name = models.CharField(max_length=255)
@@ -76,3 +67,12 @@ class Campaign(models.Model):
 
     def __str__(self):
         return self.name
+
+class DonationStep(models.Model):
+    photo = models.FileField(null=True, blank=True, upload_to="campaigns/actions/")
+    text = models.TextField(null=True, blank=True)
+    amount = models.IntegerField()
+    campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, related_name="donationSteps", null=True)
+
+    def __str__(self):
+        return self.text
