@@ -25,7 +25,7 @@ class User(AbstractUser):
 class DonationStep(models.Model):
     photo = models.FileField(null=True, blank=True, upload_to="campaigns/actions/")
     text = models.TextField(null=True, blank=True)
-    amount = model.IntegerField()
+    amount = models.IntegerField()
     campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, related_name="donationSteps", null=True)
 
     def __str__(self):
