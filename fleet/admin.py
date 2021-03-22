@@ -5,3 +5,4 @@ from .models import *
 admin.site.register(User)
 admin.site.register(Customer)
 admin.site.register(Campaign)
+admin.site.register(DonationStep)
