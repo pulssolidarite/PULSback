@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Customer, Campaign, User
+from .models import Customer, Campaign, User, DonationStep
 from terminal.models import Payment, Game
 from django.db.models import Sum
 
@@ -58,6 +58,14 @@ class PaymentForCampaignSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class DonationStepSerializer(serializers.ModelSerializer):
+    campaign = serializers.PrimaryKeyRelatedField(queryset=Campaign.objects.all())
+
+    class Meta:
+        model = DonationStep
+        fields = '__all__'
+
+
 class CampaignFullSerializer(serializers.ModelSerializer):
     logo_url = serializers.SerializerMethodField()
     collected = serializers.SerializerMethodField('get_collected')
@@ -66,6 +74,7 @@ class CampaignFullSerializer(serializers.ModelSerializer):
     total_today = serializers.ReadOnlyField()
     total_ever = serializers.ReadOnlyField()
     last_donations = PaymentForCampaignSerializer(many=True, read_only=True)
+    donationSteps = DonationStepSerializer(many=True)
 
     class Meta:
         model = Campaign
@@ -105,6 +114,5 @@ class CampaignSerializer(serializers.ModelSerializer):
 
     def get_collected(self, campaign):
         return Payment.objects.filter(campaign=campaign.id, status="Accepted").aggregate(Sum('amount'))['amount__sum'] or 0
-
 
 

@@ -69,10 +69,10 @@ class Campaign(models.Model):
         return self.name
 
 class DonationStep(models.Model):
+    amount = models.IntegerField()
     photo = models.FileField(null=True, blank=True, upload_to="campaigns/actions/")
     text = models.TextField(null=True, blank=True)
-    amount = models.IntegerField()
-    campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, related_name="donationSteps", null=True)
+    campaign = models.ForeignKey(Campaign, on_delete=models.PROTECT, related_name="donationSteps", null=True)
 
     def __str__(self):
         return self.text
