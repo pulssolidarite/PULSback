@@ -1,8 +1,8 @@
-from .models import Customer, Campaign, User, DonationStep
+from .models import Customer, Campaign, User
 from django.conf import settings
 from terminal.views import Terminal, Payment
 from terminal.serializers import PaymentFullSerializer
-from .serializers import CustomerSerializer, CampaignSerializer, UserSerializer, CampaignFullSerializer, DonationStepSerializer
+from .serializers import CustomerSerializer, CampaignSerializer, UserSerializer, CampaignFullSerializer
 from rest_framework import generics
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
@@ -102,7 +102,6 @@ class CampaignViewSet(viewsets.ModelViewSet):
         campaign.save()
         return Response(status=status.HTTP_200_OK)
 
-
 class StatsByCampaign(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -124,31 +123,3 @@ class StatsByCampaign(APIView):
             return Response(status=status.HTTP_404_NOT_FOUND)
 
 
-class DonationStepsByCampaign(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request, id):
-        queryset = DonationStep.objects.filter(campaign=id)
-        serializer = DonationStepSerializer(queryset, context={"request": request})
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-
-class DeleteDonationStep(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request, pk):
-        if (pk != 0):
-            step = get_object_or_404(DonationStep, pk=pk)
-            step.delete()
-        return Response(status=status.HTTP_200_OK)
-
-
-class ChangePhotoDonationStep(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request, id):
-        if (id != 0):
-            pass
-        else:
-            pass
-        return Response(status=status.HTTP_200_OK)
