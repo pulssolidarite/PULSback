@@ -27,7 +27,7 @@ SECRET_KEY = os.environ['SECRET_KEY']
 DEBUG = (os.environ['DEBUG'] == 'True')
 
 # ALLOWED_HOSTS = ['puls-back-prod.herokuapp.com']
-ALLOWED_HOSTS = ['puls-back-preprod.herokuapp.com']
+ALLOWED_HOSTS = ['127.0.0.1:8000']
 
 
 # Application definition
@@ -153,11 +153,11 @@ STATIC_URL = '/static/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
 
-AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
-AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
-AWS_STORAGE_BUCKET_NAME = os.environ.get("AWS_STORAGE_BUCKET_NAME")
-AWS_S3_SIGNATURE_VERSION = os.environ.get("AWS_S3_SIGNATURE_VERSION")
-AWS_S3_REGION_NAME = os.environ.get("AWS_S3_REGION_NAME")
+AWS_ACCESS_KEY_ID = "AKIAWTPALINH2WJVNOHR"
+AWS_SECRET_ACCESS_KEY = "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"
+AWS_STORAGE_BUCKET_NAME = "preprod-arcade"
+AWS_S3_SIGNATURE_VERSION = "s3v4"
+AWS_S3_REGION_NAME = "eu-west-3"
 AWS_S3_FILE_OVERWRITE = True
 AWS_DEFAULT_ACL = None
 AWS_S3_ADDRESSING_STYLE = "virtual"

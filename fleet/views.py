@@ -102,7 +102,6 @@ class CampaignViewSet(viewsets.ModelViewSet):
         campaign.save()
         return Response(status=status.HTTP_200_OK)
 
-
 class StatsByCampaign(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -124,14 +123,21 @@ class StatsByCampaign(APIView):
             return Response(status=status.HTTP_404_NOT_FOUND)
 
 
+class DonationStepViewSet(viewsets.ModelViewSet):
+    serializer_class = DonationStepSerializer
+    permission_classes = [IsAdminUser]
+
+
+
 class DonationStepsByCampaign(APIView):
-    permission_classes = [IsAuthenticated]
+    serializer_class = DonationStepSerializer
+    permission_classes = [IsAdminUser]
 
-    def get(self, request, id):
-        queryset = DonationStep.objects.filter(campaign=id)
-        serializer = DonationStepSerializer(queryset, context={"request": request})
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
+    def patch(self, request, *args, **kwargs):
+        return Response({"message": "patch"})
+    
+    def post(self, request, *args, **kwargs):
+        return Response({"message": "post"})
 
 class DeleteDonationStep(APIView):
     permission_classes = [IsAuthenticated]
