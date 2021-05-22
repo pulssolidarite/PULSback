@@ -70,7 +70,7 @@ class Campaign(models.Model):
 
 class DonationStep(models.Model):
     amount = models.IntegerField()
-    photo = models.FileField(null=True, blank=True, upload_to="campaigns/actions/")
+    # photo = models.FileField(null=True, blank=True, upload_to="campaigns/actions/")
     text = models.TextField(null=True, blank=True)
     campaign = models.ForeignKey(Campaign, on_delete=models.PROTECT, related_name="donationSteps", null=True)
 

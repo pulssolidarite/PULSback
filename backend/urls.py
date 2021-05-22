@@ -57,10 +57,10 @@ urlpatterns = [
     path('campaign/<int:id>/stats/', StatsByCampaign.as_view()),
     path('campaign/<int:id>/full/', StatsByCampaign.as_view()),
     path('campaigns/full/', StatsByCampaign.as_view()),
-    path('donationstep/<int:pk>/', DonationStepsByCampaign.as_view()),
-    path('donationstep/', DonationStepsByCampaign.as_view()),
+    path('donationstep/<int:pk>/', UpdateDonationStep.as_view()),
+    path('donationstep/', CreateDonationStep.as_view()),
     # path('donationsteps/<int:id>/changephoto/', ChangePhotoDonationStep.as_view()),
-    # path('donationstep/<int:pk>/delete/', DeleteDonationStep.as_view()),
+    path('donationstep/<int:pk>/delete/', DeleteDonationStep.as_view()),
     path('game/', include("game.urls")),
     path('dashboard/', DashboardStats.as_view())
 ]
