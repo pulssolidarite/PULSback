@@ -122,17 +122,19 @@ class StatsByCampaign(APIView):
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-
+# post request
 class CreateDonationStep(generics.CreateAPIView):
     queryset = DonationStep.objects.all()
     serializer_class = DonationStepSerializer
     permission_classes = [IsAdminUser]
 
+# patch request
 class UpdateDonationStep(generics.UpdateAPIView):
     queryset = DonationStep.objects.all()
     serializer_class = DonationStepSerializer
     permission_classes = [IsAdminUser]
 
+# delete request
 class DeleteDonationStep(APIView):
     queryset = DonationStep.objects.all()
     serializer_class = DonationStepSerializer
@@ -145,12 +147,3 @@ class DeleteDonationStep(APIView):
         return Response(status=status.HTTP_200_OK)
 
 
-class ChangePhotoDonationStep(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request, id):
-        if (id != 0):
-            pass
-        else:
-            pass
-        return Response(status=status.HTTP_200_OK)

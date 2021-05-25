@@ -26,18 +26,6 @@ class Campaign(models.Model):
     author = models.ForeignKey(User, on_delete=models.PROTECT, null=True, related_name="campaigns")
     name = models.CharField(max_length=255)
     description = models.TextField()
-    # photo1 = models.FileField(null=True, blank=True, upload_to="campaigns/actions/")
-    # text1 = models.TextField(null=True, blank=True)
-    # photo5 = models.FileField(null=True, blank=True, upload_to="campaigns/actions/")
-    # text5 = models.TextField(null=True, blank=True)
-    # photo10 = models.FileField(null=True, blank=True, upload_to="campaigns/actions/")
-    # text10 = models.TextField(null=True, blank=True)
-    # photo20 = models.FileField(null=True, blank=True, upload_to="campaigns/actions/")
-    # text20 = models.TextField(null=True, blank=True)
-    # photo30 = models.FileField(null=True, blank=True, upload_to="campaigns/actions/")
-    # text30 = models.TextField(null=True, blank=True)
-    # photo50 = models.FileField(null=True, blank=True, upload_to="campaigns/actions/")
-    # text50 = models.TextField(null=True, blank=True)
     goal_amount = models.IntegerField()
     is_video = models.BooleanField(default=True)
     video = models.CharField(max_length=255, null=True, blank=True)
@@ -69,8 +57,8 @@ class Campaign(models.Model):
         return self.name
 
 class DonationStep(models.Model):
-    amount = models.IntegerField()
-    # photo = models.FileField(null=True, blank=True, upload_to="campaigns/actions/")
+    amount = models.IntegerField(blank=True)
+    image = models.FileField(null=True, blank=True, upload_to="campaigns/actions/")
     text = models.TextField(null=True, blank=True)
     campaign = models.ForeignKey(Campaign, on_delete=models.PROTECT, related_name="donationSteps", null=True)
 
