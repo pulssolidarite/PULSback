@@ -86,7 +86,7 @@ class CampaignFullSerializer(serializers.ModelSerializer):
     total_today = serializers.ReadOnlyField()
     total_ever = serializers.ReadOnlyField()
     last_donations = PaymentForCampaignSerializer(many=True, read_only=True)
-    donationSteps = DonationStepSerializer(many=True)
+    donationSteps = DonationStepSerializer(many=True, required=False)
 
     class Meta:
         model = Campaign
@@ -109,6 +109,8 @@ class CampaignFullSerializer(serializers.ModelSerializer):
 
 # Serializer pour le model Campaign
 class CampaignSerializer(serializers.ModelSerializer):
+    donationSteps = DonationStepSerializer(many=True, required=False)
+
     class Meta:
         model = Campaign
         fields = '__all__'
