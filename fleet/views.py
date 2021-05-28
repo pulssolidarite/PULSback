@@ -1,8 +1,8 @@
-from .models import Customer, Campaign, User
+from .models import Customer, Campaign, User, DonationStep
 from django.conf import settings
 from terminal.views import Terminal, Payment
 from terminal.serializers import PaymentFullSerializer
-from .serializers import CustomerSerializer, CampaignSerializer, UserSerializer, CampaignFullSerializer
+from .serializers import CustomerSerializer, CampaignSerializer, UserSerializer, CampaignFullSerializer, DonationStepSerializer
 from rest_framework import generics
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
@@ -121,5 +121,29 @@ class StatsByCampaign(APIView):
             return Response(serializer, status=status.HTTP_200_OK)
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
+
+# post request
+class CreateDonationStep(generics.CreateAPIView):
+    queryset = DonationStep.objects.all()
+    serializer_class = DonationStepSerializer
+    permission_classes = [IsAdminUser]
+
+# patch request
+class UpdateDonationStep(generics.UpdateAPIView):
+    queryset = DonationStep.objects.all()
+    serializer_class = DonationStepSerializer
+    permission_classes = [IsAdminUser]
+
+# delete request
+class DeleteDonationStep(APIView):
+    queryset = DonationStep.objects.all()
+    serializer_class = DonationStepSerializer
+    permission_classes = [IsAdminUser]
+
+    def post(self, request, pk):
+        if (pk != 0):
+            step = get_object_or_404(DonationStep, pk=pk)
+            step.delete()
+        return Response(status=status.HTTP_200_OK)
 
 

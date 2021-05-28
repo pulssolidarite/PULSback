@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Customer, Campaign, User
+from .models import Customer, Campaign, User, DonationStep
 from terminal.models import Payment, Game
 from django.db.models import Sum
 
@@ -57,6 +57,26 @@ class PaymentForCampaignSerializer(serializers.ModelSerializer):
         model = Payment
         fields = '__all__'
 
+
+class DonationStepSerializer(serializers.ModelSerializer):
+    campaign = serializers.PrimaryKeyRelatedField(queryset=Campaign.objects.all())
+
+    class Meta:
+        model = DonationStep
+        fields = '__all__'
+
+    def get_image_url(self, step):
+        if step.image:
+            if self.context.get('request'):
+                request = self.context.get('request')
+                image_url = step.image.url
+                return request.build_absolute_uri(image_url)
+            else:
+                return step.image.url
+        else:
+            return step.image
+    
+
 class CampaignFullSerializer(serializers.ModelSerializer):
     logo_url = serializers.SerializerMethodField()
     collected = serializers.SerializerMethodField('get_collected')
@@ -65,6 +85,7 @@ class CampaignFullSerializer(serializers.ModelSerializer):
     total_today = serializers.ReadOnlyField()
     total_ever = serializers.ReadOnlyField()
     last_donations = PaymentForCampaignSerializer(many=True, read_only=True)
+    donationSteps = DonationStepSerializer(many=True, required=False)
 
     class Meta:
         model = Campaign
@@ -87,6 +108,8 @@ class CampaignFullSerializer(serializers.ModelSerializer):
 
 # Serializer pour le model Campaign
 class CampaignSerializer(serializers.ModelSerializer):
+    donationSteps = DonationStepSerializer(many=True, required=False)
+
     class Meta:
         model = Campaign
         fields = '__all__'
