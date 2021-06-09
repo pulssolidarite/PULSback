@@ -1,8 +1,8 @@
-from .models import Customer, Campaign, User
+from .models import Customer, Campaign, User, DonationStep
 from django.conf import settings
 from terminal.views import Terminal, Payment
 from terminal.serializers import PaymentFullSerializer
-from .serializers import CustomerSerializer, CampaignSerializer, UserSerializer, CampaignFullSerializer
+from .serializers import CustomerSerializer, CampaignSerializer, UserSerializer, CampaignFullSerializer, DonationStepSerializer
 from rest_framework import generics
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
@@ -19,7 +19,6 @@ import json
 import datetime
 
 
-# User Model
 class UserSelf(APIView):
     def get(self, request, format=None):
         try:
@@ -47,7 +46,6 @@ class UserDetail(generics.RetrieveUpdateDestroyAPIView):
         return obj
 
 
-# Customer Model
 class CustomerViewSet(viewsets.ModelViewSet):
     serializer_class = CustomerSerializer
     queryset = Customer.objects.filter(is_archived=False)
@@ -82,7 +80,6 @@ class DeactivateCustomer(APIView):
             return Response(status=status.HTTP_404_NOT_FOUND)
 
 
-# Campaign Model
 class CampaignViewSet(viewsets.ModelViewSet):
     serializer_class = CampaignFullSerializer
     queryset = Campaign.objects.filter(is_archived=False)
@@ -96,7 +93,6 @@ class CampaignViewSet(viewsets.ModelViewSet):
     def get(self, request, *args, **kwargs):
         queryset = Campaign.objects.filter(is_archived=False)
         serializer = CampaignSerializer(queryset, context={"request": request})
-
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def destroy(self, request, pk=None):
@@ -105,7 +101,6 @@ class CampaignViewSet(viewsets.ModelViewSet):
         campaign.terminals.clear()
         campaign.save()
         return Response(status=status.HTTP_200_OK)
-
 
 class StatsByCampaign(APIView):
     permission_classes = [IsAuthenticated]
@@ -126,4 +121,29 @@ class StatsByCampaign(APIView):
             return Response(serializer, status=status.HTTP_200_OK)
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
+
+# post request
+class CreateDonationStep(generics.CreateAPIView):
+    queryset = DonationStep.objects.all()
+    serializer_class = DonationStepSerializer
+    permission_classes = [IsAdminUser]
+
+# patch request
+class UpdateDonationStep(generics.UpdateAPIView):
+    queryset = DonationStep.objects.all()
+    serializer_class = DonationStepSerializer
+    permission_classes = [IsAdminUser]
+
+# delete request
+class DeleteDonationStep(APIView):
+    queryset = DonationStep.objects.all()
+    serializer_class = DonationStepSerializer
+    permission_classes = [IsAdminUser]
+
+    def post(self, request, pk):
+        if (pk != 0):
+            step = get_object_or_404(DonationStep, pk=pk)
+            step.delete()
+        return Response(status=status.HTTP_200_OK)
+
 
