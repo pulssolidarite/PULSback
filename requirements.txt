@@ -20,5 +20,5 @@ pytz==2019.3
 s3transfer==0.2.1
 six==1.13.0
 sqlparse==0.3.0
-urllib3==1.25.7
+urllib3==1.26.5
 whitenoise==5.0.1
