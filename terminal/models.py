@@ -16,6 +16,7 @@ class Terminal(models.Model):
     is_playing = models.BooleanField(default=False)
     is_archived = models.BooleanField(default=False)
     play_timer = models.BigIntegerField(default=10)
+    is_free = models.BooleanField(default=False)
     
     @property
     def subscription_type(self):

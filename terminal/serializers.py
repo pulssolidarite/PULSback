@@ -78,6 +78,7 @@ class TerminalFullSerializer(serializers.Serializer):
     avg_timesession = serializers.ReadOnlyField()
     avg_gametimesession = serializers.ReadOnlyField()
     subscription_type = serializers.ReadOnlyField()
+    is_free = serializers.BooleanField()
 
 
 
