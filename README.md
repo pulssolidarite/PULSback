@@ -1,5 +1,5 @@
 # Backend for Fleet Management
-Backend using Django REST Framework for our fleet management. You can find the frontend on https://github.com/hilaliMoncef/PULSfront
+Backend using Django REST Framework for our fleet management. You can find the frontend on https://github.com/pulssolidarite/PULSfront
 We are using Heroku for deployment and Amazon S3 for static files serving.
 
 ### Used plugins
