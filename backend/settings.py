@@ -26,8 +26,8 @@ SECRET_KEY = os.environ['SECRET_KEY']
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = (os.environ['DEBUG'] == 'True')
 
-# ALLOWED_HOSTS = ['puls-back-prod.herokuapp.com']
-ALLOWED_HOSTS = ['puls-back-preprod.herokuapp.com']
+ALLOWED_HOSTS = ['puls-back-prod.herokuapp.com']
+# ALLOWED_HOSTS = ['puls-back-preprod.herokuapp.com']
 # ALLOWED_HOSTS = ['127.0.0.1:8000']
 
 
@@ -106,8 +106,8 @@ REST_FRAMEWORK = {
 CORS_ORIGIN_WHITELIST = [
     "http://localhost:8080",
     "http://localhost:9080",
-    # "https://puls-front-prod.herokuapp.com",
-    "https://puls-front-preprod.herokuapp.com"
+    "https://puls-front-prod.herokuapp.com",
+    # "https://puls-front-preprod.herokuapp.com"
 ]
 
 AUTH_USER_MODEL = 'fleet.User'
