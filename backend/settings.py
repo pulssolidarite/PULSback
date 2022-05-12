@@ -21,10 +21,10 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ['SECRET_KEY']
+SECRET_KEY = 'django-insecure-n92yt@7a!3a#l-a#k@xh*zm(uoh@+vqruaql_x#&7icih3^^4y'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = (os.environ['DEBUG'] == 'True')
+DEBUG = True
 
 ALLOWED_HOSTS = ['puls-back-prod.herokuapp.com']
 # ALLOWED_HOSTS = ['puls-back-preprod.herokuapp.com']
@@ -85,8 +85,9 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'mydb',
+        'USER': 'postgres'
     }
 }
 
@@ -107,7 +108,7 @@ CORS_ORIGIN_WHITELIST = [
     "http://localhost:8080",
     "http://localhost:9080",
     "https://puls-front-prod.herokuapp.com",
-    # "https://puls-front-preprod.herokuapp.com"
+    "https://puls-front-preprod.herokuapp.com"
 ]
 
 AUTH_USER_MODEL = 'fleet.User'
@@ -155,7 +156,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
 
 AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
-AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
+AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEYFf")
 AWS_STORAGE_BUCKET_NAME = os.environ.get("AWS_STORAGE_BUCKET_NAME")
 AWS_S3_SIGNATURE_VERSION = os.environ.get("AWS_S3_SIGNATURE_VERSION")
 AWS_S3_REGION_NAME = os.environ.get("AWS_S3_REGION_NAME")
@@ -163,7 +164,7 @@ AWS_S3_FILE_OVERWRITE = True
 AWS_DEFAULT_ACL = None
 AWS_S3_ADDRESSING_STYLE = "virtual"
 
-DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+#DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
 
