@@ -17,6 +17,11 @@ from django.db.models import Avg, Sum
 from django.shortcuts import get_object_or_404
 import json
 from datetime import timedelta
+import csv
+from django.http import HttpResponse
+from openpyxl import Workbook
+from openpyxl.writer.excel import save_virtual_workbook
+from tempfile import NamedTemporaryFile
 
 
 
@@ -105,18 +110,20 @@ class PaymentFiltered(APIView):
 
             date = self.request.query_params.get('date')
 
-            time = self.request.query_params.get('time')
+            date_start = self.request.query_params.get('date_start')
+
+            date_end = self.request.query_params.get('date_end')
 
             valset = self.request.query_params.dict().copy()
 
             for key, value in self.request.query_params.items():
 
-                if ( value == "all"):
+                if ( value in [ 'all', ' ','']):
 
                     valset.pop(key)
 
 
-            if ( client != "all" ) :
+            if ( "client_id" in valset ) :
 
                 if ( terminal !=  "all" ) :
 
@@ -143,16 +150,46 @@ class PaymentFiltered(APIView):
 
                     valset['terminal_id__in'] =  owned_terminals.values_list('id', flat=True)
 
-            if ('client_id' in valset):
                 valset.pop('client_id')
 
 
-
-            if ( date != "all" ):
-
+            if ('date_start' in valset) :
 
 
+               print (  valset['date_start'] )
 
+               val = valset['date_start'].replace('T', ' ')
+
+               converted_date_start =  datetime.datetime.strptime(val, '%Y-%m-%d %H:%M:%S')
+
+
+               valset.pop('date_start')
+
+               valset['date__gte'] = converted_date_start
+
+
+            if ( 'date_end' in valset ):
+
+
+                val = valset['date_end'].replace('T', ' ')
+
+                converted_date_end = datetime.datetime.strptime(val , '%Y-%m-%d %H:%M:%S')
+
+                valset.pop('date_end')
+
+                valset['date__lt'] = converted_date_end
+
+
+            if ( "date" in valset ):
+
+
+                if ( 'date__lt' in valset):
+
+                    valset.pop('date__lt')
+
+                if ('date__gte' in valset) :
+
+                    valset.pop('date__gte')
 
                 if ( date =="Today" ) :
 
@@ -256,6 +293,7 @@ class PaymentFiltered(APIView):
                     valset['date__gte'] = now.date().replace(day=1, month=1, year=now.year - 1)
                     valset['date__lt'] = now.date().replace(day=31, month=12, year=now.year - 1)
 
+
             res = Payment.objects.filter(**valset)
 
             res = PaymentFullSerializer(res, many=True, context={"request": request})
@@ -271,6 +309,51 @@ class PaymentFiltered(APIView):
             nbr_parties = Payment.objects.filter(**valset).count()
 
             return Response({ 'payments' :  res.data, 'amountSum': amountSum, 'amountAvg': amountAvg , 'nbr_parties': nbr_parties} , status=status.HTTP_200_OK)
+
+
+class CSVviewSet(APIView):
+
+    def get(self, request, format=None):
+
+            res = PaymentFiltered.get(self, request)
+
+            data = dict(res.data)
+
+            response = HttpResponse(content_type='text/csv')
+            response['Content-Disposition'] = 'attachment; filename="export.csv"'
+
+            writer = csv.DictWriter(response, fieldnames=['Id', 'Date', 'Heure', 'Transaction', 'Donateur', 'Compagne', 'Terminal', 'Client','TPE','Montant','Jeu','Forumle des dons'])
+
+            writer.writeheader()
+
+
+            for key in data['payments']:
+
+                writer.writerow({'Id'  : key['id'] ,  'Date' : key['date'].replace('-','/') , 'Heure' : "", 'Transaction' : key['status'], 'Donateur': key['donator']['id'], 'Compagne': key['campaign']['name'] ,
+
+                'Terminal': key['terminal']['name'], 'Client': key['terminal']['owner']['customer']['company'],'TPE':"",'Montant': key['amount'],'Jeu': key['game']['name'] +" |  Logo : "+ key['game']['logo'] ,'Forumle des dons':" "})
+
+            return response
+
+
+class XLSXviewSet(APIView):
+
+    def get(self, request):
+
+        wb = Workbook()
+
+        ws = wb.create_sheet()
+
+        data = [["a", "b", "c", "d"], ["a1", "b1", "c1", "d1"]]
+        for row in data:
+            ws.append([str(cell) for cell in row])
+
+
+        response = HttpResponse(save_virtual_workbook(wb),content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = 'attachment; filename=Export_data.xlsx'
+        return response
+
+
 
 
 class GamesByTerminal(APIView):

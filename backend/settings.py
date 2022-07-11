@@ -91,12 +91,14 @@ DATABASES = {
     }
 }
 
+
+DATE_INPUT_FORMATS = ['%d-%m-%Y']
 # REST FRAMEWORK
 
 REST_FRAMEWORK = {
 
-    'DATETIME_FORMAT': "%Y-%m-%d ",
-    #'DATETIME_FORMAT': "%Y-%m-%d  %H:%M:%S",
+    'DATETIME_FORMAT': "%d-%m-%Y",
+    #'DATETIME_FORMAT': "%d-%m-%Y  %H:%M:%S",
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
