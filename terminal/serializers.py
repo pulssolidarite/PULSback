@@ -34,7 +34,7 @@ class TerminalSerializer(serializers.ModelSerializer):
     campaigns = serializers.PrimaryKeyRelatedField(queryset=Campaign.objects.all(), many=True, allow_null=True)
     games = serializers.PrimaryKeyRelatedField(queryset=Game.objects.all(), many=True, allow_null=True)
     subscription_type = serializers.ReadOnlyField()
-    #owner = UserSerializer(many=False, read_only=True)
+    owner = UserFullSerializer(many=False, read_only=True)
 
     class Meta:
         model = Terminal
@@ -88,6 +88,7 @@ class PaymentFullSerializer(serializers.ModelSerializer):
     campaign = CampaignSerializer(many=False, read_only=True)
     terminal = TerminalSerializer(many=False, read_only=True)
     game = GameSerializer(many=False, read_only=True)
+
 
     class Meta:
         model = Payment

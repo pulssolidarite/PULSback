@@ -61,7 +61,8 @@ urlpatterns = [
     path('donationstep/<int:pk>/delete/', DeleteDonationStep.as_view()),
     path('game/', include("game.urls")),
     path('dashboard/', DashboardStats.as_view()),
-    path('payment/filtered/<game_id>/', PaymentFiltered.as_view())
+    path('payment/stats/', FilterStats.as_view()),
+    path('payment/filtered/', PaymentFiltered.as_view())
 ]
 
 urlpatterns += router.urls
