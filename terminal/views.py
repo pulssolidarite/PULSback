@@ -260,8 +260,17 @@ class PaymentFiltered(APIView):
 
             res = PaymentFullSerializer(res, many=True, context={"request": request})
 
+            amountSum = Payment.objects.filter(**valset).aggregate(Sum('amount'))['amount__sum']
+            amountAvg =  Payment.objects.filter(**valset).aggregate(Avg('amount'))['amount__avg']
 
-            return Response({ 'payments' :  res.data} , status=status.HTTP_200_OK)
+            if (amountAvg ): amountAvg = round(amountAvg,2)
+
+            if (amountSum is None ): amountSum = 0
+            if (amountAvg is None): amountAvg = 0.0
+
+            nbr_parties = Payment.objects.filter(**valset).count()
+
+            return Response({ 'payments' :  res.data, 'amountSum': amountSum, 'amountAvg': amountAvg , 'nbr_parties': nbr_parties} , status=status.HTTP_200_OK)
 
 
 class GamesByTerminal(APIView):
