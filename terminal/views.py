@@ -16,6 +16,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Avg, Sum
 from django.shortcuts import get_object_or_404
 import json
+from datetime import timedelta
 
 
 
@@ -144,6 +145,116 @@ class PaymentFiltered(APIView):
 
             if ('client_id' in valset):
                 valset.pop('client_id')
+
+
+
+            if ( date != "all" ):
+
+
+
+
+
+                if ( date =="Today" ) :
+
+                    valset['date']= date = datetime.datetime.now().date()
+
+                elif (  date =="Yesterday") :
+
+                    valset['date'] = datetime.datetime.now().date() - timedelta(days=1)
+
+                elif (date == "7days"):
+
+                    some_day_last_week = datetime.datetime.now().date() - timedelta(days=7)
+
+                    monday_of_last_week = some_day_last_week - timedelta(days=(some_day_last_week.isocalendar()[2] - 1))
+                    monday_of_this_week = monday_of_last_week + timedelta(days=7)
+
+                    valset.pop('date')
+
+
+                    valset['date__gte'] = some_day_last_week
+                    valset['date__lt'] = datetime.datetime.now().date()
+
+
+
+                elif (date == "CurrentWeek"):
+
+                    today = datetime.datetime.now().date()
+
+                    monday_of_this_week = today - timedelta(days=(today.isocalendar()[2] - 1))
+
+
+                    valset.pop('date')
+
+                    valset['date__gte'] = monday_of_this_week
+                    valset['date__lt'] = today
+
+
+                elif (date == "LastWeek"):
+
+                    some_day_last_week = datetime.datetime.now().date() - timedelta(days=7)
+                    monday_of_last_week = some_day_last_week - timedelta(days=(some_day_last_week.isocalendar()[2] - 1))
+                    monday_of_this_week = monday_of_last_week + timedelta(days=7)
+
+
+                    print (monday_of_last_week)
+
+                    print (monday_of_this_week)
+
+                    valset.pop('date')
+
+                    valset['date__gte'] = monday_of_last_week
+                    valset['date__lt'] = monday_of_this_week
+
+
+                elif (date == "CurrentMonth"):
+
+
+                    now = datetime.datetime.now()
+                    start_month = datetime.datetime(now.year, now.month, 1)
+                    date_on_next_month = start_month + datetime.timedelta(35)
+                    start_next_month = datetime.datetime(date_on_next_month.year, date_on_next_month.month, 1)
+                    last_day_month = start_next_month - datetime.timedelta(1)
+
+                    valset.pop('date')
+
+
+                    valset['date__gte'] = start_month.date()
+                    valset['date__lt'] = last_day_month.date()
+
+
+                elif (date == "LastMonth"):
+
+                    today = datetime.date.today()
+                    first = today.replace(day=1)  # first date of current month
+                    end_previous_month = first - datetime.timedelta(days=1)
+                    start_previous_month = end_previous_month.replace(day=1)
+
+                    valset.pop('date')
+
+                    valset['date__gte'] = start_previous_month
+                    valset['date__lt'] = end_previous_month
+
+
+                elif (date == "ThisYear"):
+
+                    now = datetime.datetime.now()
+
+
+                    valset.pop('date')
+
+                    valset['date__gte'] = now.date().replace(day=1, month=1)
+                    valset['date__lt'] = now.date().replace(day=31, month=12)
+
+
+                else :
+
+                    now = datetime.datetime.now()
+
+                    valset.pop('date')
+
+                    valset['date__gte'] = now.date().replace(day=1, month=1, year=now.year - 1)
+                    valset['date__lt'] = now.date().replace(day=31, month=12, year=now.year - 1)
 
             res = Payment.objects.filter(**valset)
 
