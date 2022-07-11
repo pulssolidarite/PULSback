@@ -82,38 +82,24 @@ class FilterSelectItems(APIView):
         campaigns = CampaignSerializer(campaigns, many=True, context={"request": request})
         games = Game.objects.filter()
         games = GameSerializer(games, many=True, context={"request": request})
-
         customers = Customer.objects.filter()
         customers = CustomerSerializer(customers, many=True, context={"request": request})
-
         return Response({'terminals': terminals.data, 'campaigns': campaigns.data, 'games' : games.data, 'customers' : customers.data }, status=status.HTTP_200_OK)
 
 
 class PaymentFiltered(APIView):
     permission_classes = [IsAuthenticated]
-
     def get(self, request, format=None):
-
             campaign = self.request.query_params.get('campaign')
-
             terminal = self.request.query_params.get('terminal_id')
-
             client = self.request.query_params.get('client_id')
-
             formule = self.request.query_params.get('formule_')
-
             transaction = self.request.query_params.get('transaction_id')
-
             game = self.request.query_params.get('game_id')
-
             tpe = self.request.query_params.get('tpe')
-
             date = self.request.query_params.get('date')
-
             date_start = self.request.query_params.get('date_start')
-
             date_end = self.request.query_params.get('date_end')
-
             try :
                 results_number = int( self.request.query_params.get('results_number'))
             except ValueError :
@@ -121,251 +107,124 @@ class PaymentFiltered(APIView):
                     results_number = float(self.request.query_params.get('results_number'))
                     results_number = int(results_number)
                 except ValueError :
-                    results_number = 0
-
-
-            valset = self.request.query_params.dict().copy()
-
+                    results_number = 50
+            url_parameters = self.request.query_params.dict().copy()
             for key, value in self.request.query_params.items():
-
                 if ( value in [ 'all', ' ','','DD-MM-YYYY H:m:s', 'DD-MM-YYYY'] or key == 'results_number'):
-
-                    valset.pop(key)
-
-
-            if ( "client_id" in valset ) :
-
+                    url_parameters.pop(key)
+            if ( "client_id" in url_parameters) :
                 if ( terminal !=  "all" ) :
-
                     users_cl = User.objects.filter(customer_id=client)
-
                     owned_terminals = Terminal.objects.filter(owner_id__in=users_cl.values_list('id', flat=True))
-
-
                     l1=set(owned_terminals.values_list('id', flat=True))
-
-                    l2 = {int( valset['terminal_id'])}
-
+                    l2 = {int(url_parameters['terminal_id'])}
                     common_vals = l1.intersection(l2)
-
-                    valset.pop('terminal_id')
-
-                    valset['terminal_id__in'] = common_vals
-
+                    url_parameters.pop('terminal_id')
+                    url_parameters['terminal_id__in'] = common_vals
                 else :
-
                     users_cl = User.objects.filter(customer_id=client)
-
                     owned_terminals = Terminal.objects.filter(owner_id__in=users_cl.values_list('id', flat=True))
-
-                    valset['terminal_id__in'] =  owned_terminals.values_list('id', flat=True)
-
-                valset.pop('client_id')
-
-
-            if ('date_start' in valset) :
-
-
-               print (  valset['date_start'] )
-
-               val = valset['date_start'].replace('T', ' ')
-
+                    url_parameters['terminal_id__in'] =  owned_terminals.values_list('id', flat=True)
+                url_parameters.pop('client_id')
+            if ('date_start' in url_parameters) :
+               print (url_parameters['date_start'])
+               val = url_parameters['date_start'].replace('T', ' ')
                converted_date_start =  datetime.datetime.strptime(val, '%d-%m-%Y %H:%M:%S')
-
-
-               valset.pop('date_start')
-
-               valset['date__gte'] = converted_date_start
-
-
-            if ( 'date_end' in valset ):
-
-
-                val = valset['date_end'].replace('T', ' ')
-
+               url_parameters.pop('date_start')
+               url_parameters['date__gte'] = converted_date_start
+            if ( 'date_end' in url_parameters):
+                val = url_parameters['date_end'].replace('T', ' ')
                 converted_date_end = datetime.datetime.strptime(val , '%d-%m-%Y %H:%M:%S')
-
-                valset.pop('date_end')
-
-                valset['date__lt'] = converted_date_end
-
-
-            if ( "date" in valset ):
-
-
-                if ( 'date__lt' in valset):
-
-                    valset.pop('date__lt')
-
-                if ('date__gte' in valset) :
-
-                    valset.pop('date__gte')
-
+                url_parameters.pop('date_end')
+                url_parameters['date__lt'] = converted_date_end
+            if ( "date" in url_parameters):
+                if ( 'date__lt' in url_parameters):
+                    url_parameters.pop('date__lt')
+                if ('date__gte' in url_parameters) :
+                    url_parameters.pop('date__gte')
                 if ( date =="Today" ) :
-
-                    valset['date']= date = datetime.datetime.now().date()
-
+                    url_parameters['date']= date = datetime.datetime.now().date()
                 elif (  date =="Yesterday") :
-
-                    valset['date'] = datetime.datetime.now().date() - timedelta(days=1)
-
+                    url_parameters['date'] = datetime.datetime.now().date() - timedelta(days=1)
                 elif (date == "7days"):
-
                     some_day_last_week = datetime.datetime.now().date() - timedelta(days=7)
-
                     monday_of_last_week = some_day_last_week - timedelta(days=(some_day_last_week.isocalendar()[2] - 1))
                     monday_of_this_week = monday_of_last_week + timedelta(days=7)
-
-                    valset.pop('date')
-
-
-                    valset['date__gte'] = some_day_last_week
-                    valset['date__lt'] = datetime.datetime.now().date()
-
-
-
+                    url_parameters.pop('date')
+                    url_parameters['date__gte'] = some_day_last_week
+                    url_parameters['date__lt'] = datetime.datetime.now().date()
                 elif (date == "CurrentWeek"):
-
                     today = datetime.datetime.now().date()
-
                     monday_of_this_week = today - timedelta(days=(today.isocalendar()[2] - 1))
-
-
-                    valset.pop('date')
-
-                    valset['date__gte'] = monday_of_this_week
-                    valset['date__lt'] = today
-
-
+                    url_parameters.pop('date')
+                    url_parameters['date__gte'] = monday_of_this_week
+                    url_parameters['date__lt'] = today
                 elif (date == "LastWeek"):
-
                     some_day_last_week = datetime.datetime.now().date() - timedelta(days=7)
                     monday_of_last_week = some_day_last_week - timedelta(days=(some_day_last_week.isocalendar()[2] - 1))
                     monday_of_this_week = monday_of_last_week + timedelta(days=7)
-
-
                     print (monday_of_last_week)
-
                     print (monday_of_this_week)
-
-                    valset.pop('date')
-
-                    valset['date__gte'] = monday_of_last_week
-                    valset['date__lt'] = monday_of_this_week
-
-
+                    url_parameters.pop('date')
+                    url_parameters['date__gte'] = monday_of_last_week
+                    url_parameters['date__lt'] = monday_of_this_week
                 elif (date == "CurrentMonth"):
-
-
                     now = datetime.datetime.now()
                     start_month = datetime.datetime(now.year, now.month, 1)
                     date_on_next_month = start_month + datetime.timedelta(35)
                     start_next_month = datetime.datetime(date_on_next_month.year, date_on_next_month.month, 1)
                     last_day_month = start_next_month - datetime.timedelta(1)
-
-                    valset.pop('date')
-
-
-                    valset['date__gte'] = start_month.date()
-                    valset['date__lt'] = last_day_month.date()
-
-
+                    url_parameters.pop('date')
+                    url_parameters['date__gte'] = start_month.date()
+                    url_parameters['date__lt'] = last_day_month.date()
                 elif (date == "LastMonth"):
-
                     today = datetime.date.today()
                     first = today.replace(day=1)  # first date of current month
                     end_previous_month = first - datetime.timedelta(days=1)
                     start_previous_month = end_previous_month.replace(day=1)
-
-                    valset.pop('date')
-
-                    valset['date__gte'] = start_previous_month
-                    valset['date__lt'] = end_previous_month
-
-
+                    url_parameters.pop('date')
+                    url_parameters['date__gte'] = start_previous_month
+                    url_parameters['date__lt'] = end_previous_month
                 elif (date == "ThisYear"):
-
                     now = datetime.datetime.now()
-
-
-                    valset.pop('date')
-
-                    valset['date__gte'] = now.date().replace(day=1, month=1)
-                    valset['date__lt'] = now.date().replace(day=31, month=12)
-
-
+                    url_parameters.pop('date')
+                    url_parameters['date__gte'] = now.date().replace(day=1, month=1)
+                    url_parameters['date__lt'] = now.date().replace(day=31, month=12)
                 else :
-
                     now = datetime.datetime.now()
-
-                    valset.pop('date')
-
-                    valset['date__gte'] = now.date().replace(day=1, month=1, year=now.year - 1)
-                    valset['date__lt'] = now.date().replace(day=31, month=12, year=now.year - 1)
-
-
-            res_objects = Payment.objects.filter(**valset).order_by('-date')[:results_number]
-
+                    url_parameters.pop('date')
+                    url_parameters['date__gte'] = now.date().replace(day=1, month=1, year=now.year - 1)
+                    url_parameters['date__lt'] = now.date().replace(day=31, month=12, year=now.year - 1)
+            if ('payment_terminal' in url_parameters):
+                url_parameters.pop('payment_terminal')
+                tpe = self.request.query_params.get('payment_terminal')
+                terminals = Terminal.objects.filter(payment_terminal=tpe)
+                res_objects = Payment.objects.filter(**url_parameters).filter(terminal_id__in= terminals).order_by('-date')[:results_number]
+            else :
+                res_objects = Payment.objects.filter(**url_parameters).order_by('-date')[:results_number]
             res = PaymentFullSerializer(res_objects, many=True, context={"request": request})
-
             amountSum = res_objects.aggregate(Sum('amount'))['amount__sum']
             amountAvg =  res_objects.aggregate(Avg('amount'))['amount__avg']
-
             if (amountAvg ): amountAvg = round(amountAvg,2)
-
             if (amountSum is None ): amountSum = 0
             if (amountAvg is None): amountAvg = 0.0
-
-            nbr_parties = res_objects.count()
-
-            return Response({ 'payments' :  res.data, 'amountSum': amountSum, 'amountAvg': amountAvg , 'nbr_parties': nbr_parties} , status=status.HTTP_200_OK)
+            total_games = res_objects.count()
+            return Response({ 'payments' :  res.data, 'amountSum': amountSum, 'amountAvg': amountAvg , 'total_games': total_games}, status=status.HTTP_200_OK)
 
 
 class CSVviewSet(APIView):
 
     def get(self, request, format=None):
-
-
-
             res = PaymentFiltered.get(self, request)
-
             data = dict(res.data)
-
             response = HttpResponse(content_type='text/csv')
             response['Content-Disposition'] = 'attachment; filename="export.csv"'
-
-            writer = csv.DictWriter(response, fieldnames=['Id', 'Date',  'Transaction', 'Donateur', 'Compagne', 'Terminal', 'Client','Montant en €','Jeu'])
-
+            writer = csv.DictWriter(response, fieldnames=['Id', 'Date',  'Transaction', 'Donateur', 'Compagne', 'Terminal', 'Client', 'TPE', 'Montant en €','Jeu'])
             writer.writeheader()
-
-
             for key in data['payments']:
-
                 writer.writerow({'Id'  : key['id'] ,  'Date' : key['date'].replace('-','/') ,  'Transaction' : key['status'], 'Donateur': key['donator']['id'], 'Compagne': key['campaign']['name'] ,
-
-                'Terminal': key['terminal']['name'], 'Client': key['terminal']['owner']['customer']['company'],'Montant en €': key['amount'] ,'Jeu': key['game']['name']  })
-
+                'Terminal': key['terminal']['name'], 'Client': key['terminal']['owner']['customer']['company'], 'TPE': key['terminal']['payment_terminal'], 'Montant en €': key['amount'] ,'Jeu': key['game']['name']  })
             return response
-
-
-class XLSXviewSet(APIView):
-
-    def get(self, request):
-
-        wb = Workbook()
-
-        ws = wb.create_sheet()
-
-        data = [["a", "b", "c", "d"], ["a1", "b1", "c1", "d1"]]
-        for row in data:
-            ws.append([str(cell) for cell in row])
-
-
-        response = HttpResponse(save_virtual_workbook(wb),content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-        response['Content-Disposition'] = 'attachment; filename=Export_data.xlsx'
-        return response
-
-
 
 
 class GamesByTerminal(APIView):
