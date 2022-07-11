@@ -79,6 +79,8 @@ class TerminalFullSerializer(serializers.Serializer):
     avg_gametimesession = serializers.ReadOnlyField()
     subscription_type = serializers.ReadOnlyField()
     is_free = serializers.BooleanField()
+    free_mode_text = serializers.CharField()
+    payment_terminal = serializers.CharField()
 
 
 
