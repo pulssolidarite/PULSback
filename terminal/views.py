@@ -2,7 +2,7 @@ from django.views.generic.list import ListView
 from rest_framework import viewsets
 from rest_framework.generics import CreateAPIView, ListAPIView, ListCreateAPIView, RetrieveDestroyAPIView, RetrieveUpdateDestroyAPIView, UpdateAPIView
 from rest_framework.views import APIView
-from .models import Terminal, Donator, Session, Payment
+from .models import Terminal, Donator, Session, Payment,Campaign
 from game.models import Game, Core, GameFile, CoreFile
 from .serializers import *
 from fleet.serializers import CampaignSerializer
@@ -52,14 +52,29 @@ class DashboardStats(APIView):
     def get(self, request, format=None):
         terminals = Terminal.objects.filter(is_on=True)
         terminals = TerminalSemiSerializer(terminals, many=True, context={"request": request})
+        campaigns = Campaign.objects.filter()
+        campaigns = CampaignSerializer(campaigns, many=True, context={"request": request})
         collected = Payment.objects.filter(date__month=datetime.datetime.now().month, date__year=datetime.datetime.now().year).aggregate(Sum('amount'))['amount__sum']
         collected_last = Payment.objects.filter(date__month=datetime.datetime.now().month - 1, date__year=datetime.datetime.now().year).aggregate(Sum('amount'))['amount__sum']
         nb_donators = Session.objects.filter(start_time__month=datetime.datetime.now().month, start_time__year=datetime.datetime.now().year).count()
         nb_donators_last = Session.objects.filter(start_time__month=datetime.datetime.now().month - 1, start_time__year=datetime.datetime.now().year).count()
         nb_terminals = Terminal.objects.all().count()
         total_gamesession = Session.objects.all().aggregate(Sum('timesession'))['timesession__sum']
-        return Response({'terminals': terminals.data, 'collected': collected, 'nb_donators': nb_donators, 'nb_terminals': nb_terminals, 'total_gamesession': total_gamesession, 'collected_last': collected_last, 'nb_donators_last': nb_donators_last}, status=status.HTTP_200_OK)
+        return Response({'terminals': terminals.data, 'campaigns': campaigns.data, 'collected': collected, 'nb_donators': nb_donators, 'nb_terminals': nb_terminals, 'total_gamesession': total_gamesession, 'collected_last': collected_last, 'nb_donators_last': nb_donators_last}, status=status.HTTP_200_OK)
 
+
+
+
+class PaymentFiltered(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, game_id, format=None):
+
+            res = Payment.objects.filter(game_id=game_id )
+
+            res = PaymentFullSerializer(res, many=True, context={"request": request})
+
+            return Response({ 'payments' :  res.data} , status=status.HTTP_200_OK)
 
 
 class GamesByTerminal(APIView):
