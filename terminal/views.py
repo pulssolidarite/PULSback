@@ -4,6 +4,8 @@ from rest_framework.generics import CreateAPIView, ListAPIView, ListCreateAPIVie
 from rest_framework.views import APIView
 from .models import Terminal, Donator, Session, Payment,Campaign
 from game.models import Game, Core, GameFile, CoreFile
+from fleet.models import Customer,User
+from fleet.serializers import CustomerSerializer
 from .serializers import *
 from fleet.serializers import CampaignSerializer
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
@@ -64,15 +66,89 @@ class DashboardStats(APIView):
 
 
 
+class FilterStats(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, format=None):
+        terminals = Terminal.objects.filter()
+        terminals = TerminalSemiSerializer(terminals, many=True, context={"request": request})
+        campaigns = Campaign.objects.filter()
+        campaigns = CampaignSerializer(campaigns, many=True, context={"request": request})
+        games = Game.objects.filter()
+        games = GameSerializer(games, many=True, context={"request": request})
+
+        customers = Customer.objects.filter()
+        customers = CustomerSerializer(customers, many=True, context={"request": request})
+
+        return Response({'terminals': terminals.data, 'campaigns': campaigns.data, 'games' : games.data, 'customers' : customers.data }, status=status.HTTP_200_OK)
+
 
 class PaymentFiltered(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, game_id, format=None):
+    def get(self, request, format=None):
 
-            res = Payment.objects.filter(game_id=game_id )
+            campaign = self.request.query_params.get('campaign')
+
+            terminal = self.request.query_params.get('terminal_id')
+
+            client = self.request.query_params.get('client_id')
+
+            formule = self.request.query_params.get('formule_')
+
+            transaction = self.request.query_params.get('transaction_id')
+
+            game = self.request.query_params.get('game_id')
+
+            tpe = self.request.query_params.get('tpe')
+
+            date = self.request.query_params.get('date')
+
+            time = self.request.query_params.get('time')
+
+            valset = self.request.query_params.dict().copy()
+
+            for key, value in self.request.query_params.items():
+
+                if ( value == "all"):
+
+                    valset.pop(key)
+
+
+            if ( client != "all" ) :
+
+                if ( terminal !=  "all" ) :
+
+                    users_cl = User.objects.filter(customer_id=client)
+
+                    owned_terminals = Terminal.objects.filter(owner_id__in=users_cl.values_list('id', flat=True))
+
+
+                    l1=set(owned_terminals.values_list('id', flat=True))
+
+                    l2 = {int( valset['terminal_id'])}
+
+                    common_vals = l1.intersection(l2)
+
+                    valset.pop('terminal_id')
+
+                    valset['terminal_id__in'] = common_vals
+
+                else :
+
+                    users_cl = User.objects.filter(customer_id=client)
+
+                    owned_terminals = Terminal.objects.filter(owner_id__in=users_cl.values_list('id', flat=True))
+
+                    valset['terminal_id__in'] =  owned_terminals.values_list('id', flat=True)
+
+            if ('client_id' in valset):
+                valset.pop('client_id')
+
+            res = Payment.objects.filter(**valset)
 
             res = PaymentFullSerializer(res, many=True, context={"request": request})
+
 
             return Response({ 'payments' :  res.data} , status=status.HTTP_200_OK)
 
