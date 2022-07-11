@@ -64,7 +64,6 @@ urlpatterns = [
     path('payment/SelectItems/', FilterSelectItems.as_view()),
     path('payment/filtered/', PaymentFiltered.as_view()),
     path('payment/exportCSV/', CSVviewSet.as_view()),
-    path('payment/exportXLSX/', XLSXviewSet.as_view()),
 ]
 
 urlpatterns += router.urls

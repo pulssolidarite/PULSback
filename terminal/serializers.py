@@ -35,6 +35,7 @@ class TerminalSerializer(serializers.ModelSerializer):
     games = serializers.PrimaryKeyRelatedField(queryset=Game.objects.all(), many=True, allow_null=True)
     subscription_type = serializers.ReadOnlyField()
     owner = UserFullSerializer(many=False, read_only=True)
+    payment_terminal = serializers.CharField()
 
     class Meta:
         model = Terminal
@@ -58,6 +59,9 @@ class TerminalSemiSerializer(serializers.Serializer):
     avg_timesession = serializers.ReadOnlyField()
     avg_gametimesession = serializers.ReadOnlyField()
     subscription_type = serializers.ReadOnlyField()
+    is_free = serializers.BooleanField()
+    free_mode_text = serializers.CharField()
+    payment_terminal = serializers.CharField()
 
 
 # Serializer pour le model Terminal
