@@ -97,8 +97,8 @@ DATE_INPUT_FORMATS = ['%d-%m-%Y']
 
 REST_FRAMEWORK = {
 
-    'DATETIME_FORMAT': "%d-%m-%Y",
-    #'DATETIME_FORMAT': "%d-%m-%Y  %H:%M:%S",
+    #'DATETIME_FORMAT': "%d-%m-%Y",
+    'DATETIME_FORMAT': "%d-%m-%Y  %H:%M:%S",
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],

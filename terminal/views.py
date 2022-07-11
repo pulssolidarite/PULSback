@@ -72,7 +72,7 @@ class DashboardStats(APIView):
 
 
 
-class FilterStats(APIView):
+class FilterSelectItems(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, format=None):
@@ -114,11 +114,21 @@ class PaymentFiltered(APIView):
 
             date_end = self.request.query_params.get('date_end')
 
+            try :
+                results_number = int( self.request.query_params.get('results_number'))
+            except ValueError :
+                try :
+                    results_number = float(self.request.query_params.get('results_number'))
+                    results_number = int(results_number)
+                except ValueError :
+                    results_number = 0
+
+
             valset = self.request.query_params.dict().copy()
 
             for key, value in self.request.query_params.items():
 
-                if ( value in [ 'all', ' ','']):
+                if ( value in [ 'all', ' ','','DD-MM-YYYY H:m:s', 'DD-MM-YYYY'] or key == 'results_number'):
 
                     valset.pop(key)
 
@@ -160,7 +170,7 @@ class PaymentFiltered(APIView):
 
                val = valset['date_start'].replace('T', ' ')
 
-               converted_date_start =  datetime.datetime.strptime(val, '%Y-%m-%d %H:%M:%S')
+               converted_date_start =  datetime.datetime.strptime(val, '%d-%m-%Y %H:%M:%S')
 
 
                valset.pop('date_start')
@@ -173,7 +183,7 @@ class PaymentFiltered(APIView):
 
                 val = valset['date_end'].replace('T', ' ')
 
-                converted_date_end = datetime.datetime.strptime(val , '%Y-%m-%d %H:%M:%S')
+                converted_date_end = datetime.datetime.strptime(val , '%d-%m-%Y %H:%M:%S')
 
                 valset.pop('date_end')
 
@@ -294,19 +304,19 @@ class PaymentFiltered(APIView):
                     valset['date__lt'] = now.date().replace(day=31, month=12, year=now.year - 1)
 
 
-            res = Payment.objects.filter(**valset)
+            res_objects = Payment.objects.filter(**valset).order_by('-date')[:results_number]
 
-            res = PaymentFullSerializer(res, many=True, context={"request": request})
+            res = PaymentFullSerializer(res_objects, many=True, context={"request": request})
 
-            amountSum = Payment.objects.filter(**valset).aggregate(Sum('amount'))['amount__sum']
-            amountAvg =  Payment.objects.filter(**valset).aggregate(Avg('amount'))['amount__avg']
+            amountSum = res_objects.aggregate(Sum('amount'))['amount__sum']
+            amountAvg =  res_objects.aggregate(Avg('amount'))['amount__avg']
 
             if (amountAvg ): amountAvg = round(amountAvg,2)
 
             if (amountSum is None ): amountSum = 0
             if (amountAvg is None): amountAvg = 0.0
 
-            nbr_parties = Payment.objects.filter(**valset).count()
+            nbr_parties = res_objects.count()
 
             return Response({ 'payments' :  res.data, 'amountSum': amountSum, 'amountAvg': amountAvg , 'nbr_parties': nbr_parties} , status=status.HTTP_200_OK)
 
@@ -315,6 +325,8 @@ class CSVviewSet(APIView):
 
     def get(self, request, format=None):
 
+
+
             res = PaymentFiltered.get(self, request)
 
             data = dict(res.data)
@@ -322,16 +334,16 @@ class CSVviewSet(APIView):
             response = HttpResponse(content_type='text/csv')
             response['Content-Disposition'] = 'attachment; filename="export.csv"'
 
-            writer = csv.DictWriter(response, fieldnames=['Id', 'Date', 'Heure', 'Transaction', 'Donateur', 'Compagne', 'Terminal', 'Client','TPE','Montant','Jeu','Forumle des dons'])
+            writer = csv.DictWriter(response, fieldnames=['Id', 'Date',  'Transaction', 'Donateur', 'Compagne', 'Terminal', 'Client','Montant en €','Jeu'])
 
             writer.writeheader()
 
 
             for key in data['payments']:
 
-                writer.writerow({'Id'  : key['id'] ,  'Date' : key['date'].replace('-','/') , 'Heure' : "", 'Transaction' : key['status'], 'Donateur': key['donator']['id'], 'Compagne': key['campaign']['name'] ,
+                writer.writerow({'Id'  : key['id'] ,  'Date' : key['date'].replace('-','/') ,  'Transaction' : key['status'], 'Donateur': key['donator']['id'], 'Compagne': key['campaign']['name'] ,
 
-                'Terminal': key['terminal']['name'], 'Client': key['terminal']['owner']['customer']['company'],'TPE':"",'Montant': key['amount'],'Jeu': key['game']['name'] +" |  Logo : "+ key['game']['logo'] ,'Forumle des dons':" "})
+                'Terminal': key['terminal']['name'], 'Client': key['terminal']['owner']['customer']['company'],'Montant en €': key['amount'] ,'Jeu': key['game']['name']  })
 
             return response
 
