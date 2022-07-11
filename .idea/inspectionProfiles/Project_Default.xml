@@ -4,7 +4,7 @@
     <inspection_tool class="PyPackageRequirementsInspection" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="ignoredPackages">
         <value>
-          <list size="13">
+          <list size="18">
             <item index="0" class="java.lang.String" itemvalue="dj-database-url" />
             <item index="1" class="java.lang.String" itemvalue="six" />
             <item index="2" class="java.lang.String" itemvalue="django-heroku" />
@@ -18,6 +18,11 @@
             <item index="10" class="java.lang.String" itemvalue="Django" />
             <item index="11" class="java.lang.String" itemvalue="pytz" />
             <item index="12" class="java.lang.String" itemvalue="django-cors-headers" />
+            <item index="13" class="java.lang.String" itemvalue="boto3" />
+            <item index="14" class="java.lang.String" itemvalue="botocore" />
+            <item index="15" class="java.lang.String" itemvalue="djangorestframework-simplejwt" />
+            <item index="16" class="java.lang.String" itemvalue="django-storages" />
+            <item index="17" class="java.lang.String" itemvalue="djangorestframework" />
           </list>
         </value>
       </option>

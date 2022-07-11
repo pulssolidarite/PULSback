@@ -76,13 +76,13 @@ class FilterSelectItems(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, format=None):
-        terminals = Terminal.objects.filter()
+        terminals = Terminal.objects.filter().exclude(payment_terminal__isnull=True).exclude(payment_terminal__exact='').distinct('payment_terminal')
         terminals = TerminalSemiSerializer(terminals, many=True, context={"request": request})
-        campaigns = Campaign.objects.filter()
+        campaigns = Campaign.objects.filter().order_by("name")
         campaigns = CampaignSerializer(campaigns, many=True, context={"request": request})
-        games = Game.objects.filter()
+        games = Game.objects.filter().order_by("name")
         games = GameSerializer(games, many=True, context={"request": request})
-        customers = Customer.objects.filter()
+        customers = Customer.objects.filter().order_by("company")
         customers = CustomerSerializer(customers, many=True, context={"request": request})
         return Response({'terminals': terminals.data, 'campaigns': campaigns.data, 'games' : games.data, 'customers' : customers.data }, status=status.HTTP_200_OK)
 
@@ -195,13 +195,31 @@ class PaymentFiltered(APIView):
                     url_parameters.pop('date')
                     url_parameters['date__gte'] = now.date().replace(day=1, month=1, year=now.year - 1)
                     url_parameters['date__lt'] = now.date().replace(day=31, month=12, year=now.year - 1)
-            if ('payment_terminal' in url_parameters):
+            if ('donation_formula' in url_parameters and  'payment_terminal' in url_parameters):
+                url_parameters.pop('donation_formula')
+                url_parameters.pop('payment_terminal')
+                donation_formula = self.request.query_params.get('donation_formula')
+                tpe = self.request.query_params.get('payment_terminal')
+                terminals = Terminal.objects.filter(donation_formula=donation_formula,payment_terminal=tpe )
+                res_objects = Payment.objects.filter(**url_parameters).filter(terminal_id__in=terminals)
+                TotalResults = Payment.objects.filter(**url_parameters).filter(terminal_id__in=terminals)
+            elif ('donation_formula'  in url_parameters):
+                url_parameters.pop('donation_formula')
+                donation_formula = self.request.query_params.get('donation_formula')
+                terminals = Terminal.objects.filter(donation_formula=donation_formula)
+                res_objects = Payment.objects.filter(**url_parameters).filter(terminal_id__in=terminals)
+                TotalResults = Payment.objects.filter(**url_parameters).filter(terminal_id__in=terminals)
+            elif   ('payment_terminal'  in url_parameters):
                 url_parameters.pop('payment_terminal')
                 tpe = self.request.query_params.get('payment_terminal')
-                terminals = Terminal.objects.filter(payment_terminal=tpe)
-                res_objects = Payment.objects.filter(**url_parameters).filter(terminal_id__in= terminals).order_by('-date')[:results_number]
+                terminals = Terminal.objects.filter( payment_terminal=tpe)
+                res_objects = Payment.objects.filter(**url_parameters).filter(terminal_id__in=terminals)
+                TotalResults = Payment.objects.filter(**url_parameters).filter(terminal_id__in=terminals)
             else :
-                res_objects = Payment.objects.filter(**url_parameters).order_by('-date')[:results_number]
+                res_objects = Payment.objects.filter(**url_parameters)
+                TotalResults = Payment.objects.filter(**url_parameters)
+            res_objects = res_objects.order_by('-date')[:results_number]
+            TotalResults = TotalResults.order_by('-date').count()
             res = PaymentFullSerializer(res_objects, many=True, context={"request": request})
             amountSum = res_objects.aggregate(Sum('amount'))['amount__sum']
             amountAvg =  res_objects.aggregate(Avg('amount'))['amount__avg']
@@ -209,7 +227,7 @@ class PaymentFiltered(APIView):
             if (amountSum is None ): amountSum = 0
             if (amountAvg is None): amountAvg = 0.0
             total_games = res_objects.count()
-            return Response({ 'payments' :  res.data, 'amountSum': amountSum, 'amountAvg': amountAvg , 'total_games': total_games}, status=status.HTTP_200_OK)
+            return Response({ 'payments' :  res.data, 'amountSum': amountSum, 'amountAvg': amountAvg , 'total_games': total_games, 'TotalResults' : TotalResults}, status=status.HTTP_200_OK)
 
 
 class CSVviewSet(APIView):
@@ -219,11 +237,11 @@ class CSVviewSet(APIView):
             data = dict(res.data)
             response = HttpResponse(content_type='text/csv')
             response['Content-Disposition'] = 'attachment; filename="export.csv"'
-            writer = csv.DictWriter(response, fieldnames=['Id', 'Date',  'Transaction', 'Donateur', 'Compagne', 'Terminal', 'Client', 'TPE', 'Montant en €','Jeu'])
+            writer = csv.DictWriter(response, fieldnames=['Id', 'Date',  'Transaction', 'Donateur', 'Compagne', 'Terminal', 'Client', 'TPE', 'Montant en €','Jeu', 'Formule de dons'])
             writer.writeheader()
             for key in data['payments']:
                 writer.writerow({'Id'  : key['id'] ,  'Date' : key['date'].replace('-','/') ,  'Transaction' : key['status'], 'Donateur': key['donator']['id'], 'Compagne': key['campaign']['name'] ,
-                'Terminal': key['terminal']['name'], 'Client': key['terminal']['owner']['customer']['company'], 'TPE': key['terminal']['payment_terminal'], 'Montant en €': key['amount'] ,'Jeu': key['game']['name']  })
+                'Terminal': key['terminal']['name'], 'Client': key['terminal']['owner']['customer']['company'], 'TPE': key['terminal']['payment_terminal'], 'Montant en €': key['amount'] ,'Jeu': key['game']['name'] ,'Formule de dons': key['terminal']['donation_formula']   })
             return response
 
 

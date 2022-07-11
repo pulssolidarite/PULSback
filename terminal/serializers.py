@@ -36,6 +36,7 @@ class TerminalSerializer(serializers.ModelSerializer):
     subscription_type = serializers.ReadOnlyField()
     owner = UserFullSerializer(many=False, read_only=True)
     payment_terminal = serializers.CharField()
+    donation_formula = serializers.CharField()
 
     class Meta:
         model = Terminal
@@ -62,6 +63,7 @@ class TerminalSemiSerializer(serializers.Serializer):
     is_free = serializers.BooleanField()
     free_mode_text = serializers.CharField()
     payment_terminal = serializers.CharField()
+    donation_formula = serializers.CharField()
 
 
 # Serializer pour le model Terminal
@@ -85,6 +87,7 @@ class TerminalFullSerializer(serializers.Serializer):
     is_free = serializers.BooleanField()
     free_mode_text = serializers.CharField()
     payment_terminal = serializers.CharField()
+    donation_formula = serializers.CharField()
 
 
 
