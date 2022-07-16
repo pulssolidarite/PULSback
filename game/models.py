@@ -53,6 +53,7 @@ class Game(models.Model):
     is_video = models.BooleanField(default=False)
     video = models.CharField(max_length=255, null=True, blank=True)
     logo = models.FileField(blank=True, null=True, upload_to="games/logos/")
+    cover = models.FileField(blank=True, null=True, upload_to="games/covers/")
     is_archived = models.BooleanField(default=False)
     j_up = models.CharField(max_length=255, default="Haut", null=True, blank=True)
     j_down = models.CharField(max_length=255, default="Bas", null=True, blank=True)
