@@ -34,7 +34,7 @@ class TerminalSerializer(serializers.ModelSerializer):
     campaigns = serializers.PrimaryKeyRelatedField(queryset=Campaign.objects.all(), many=True, allow_null=True)
     games = serializers.PrimaryKeyRelatedField(queryset=Game.objects.all(), many=True, allow_null=True)
     subscription_type = serializers.ReadOnlyField()
-    owner = UserFullSerializer(many=False, read_only=True)
+    # owner = UserSerializer(many=False, read_only=True)
     payment_terminal = serializers.CharField(allow_null=True)
     donation_formula = serializers.CharField()
 
