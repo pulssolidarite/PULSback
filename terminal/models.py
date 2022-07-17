@@ -18,7 +18,7 @@ class Terminal(models.Model):
     play_timer = models.BigIntegerField(default=10)
     free_mode_text = models.CharField(max_length=250, blank=True, null=True)
     payment_terminal = models.CharField(max_length=250, null=True, blank=True)
-    donation_formula = models.CharField(max_length=250, blank=True, null=True)
+    donation_formula = models.CharField(max_length=250, null=True)
 
 
     @property

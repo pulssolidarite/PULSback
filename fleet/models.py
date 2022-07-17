@@ -7,6 +7,7 @@ import datetime
 class Customer(models.Model):
     company = models.CharField(max_length=255)
     representative = models.CharField(max_length=255, null=True)
+    logo = models.FileField(blank=True, null=True, upload_to="customers/logos/")
     sales_type = models.CharField(max_length=1, default="A", null=True)
     is_active = models.BooleanField(default=True)
     is_archived = models.BooleanField(default=False)
@@ -25,12 +26,14 @@ class User(AbstractUser):
 class Campaign(models.Model):
     author = models.ForeignKey(User, on_delete=models.PROTECT, null=True, related_name="campaigns")
     name = models.CharField(max_length=255)
+    logo = models.FileField(null=True, blank=True, upload_to="campaigns/logos/")
+    squared_image = models.FileField(blank=True, null=True, upload_to="campaigns/squared_images/")
+    cover = models.FileField(blank=True, null=True, upload_to="campaigns/covers/")
     description = models.TextField()
     goal_amount = models.IntegerField()
     is_video = models.BooleanField(default=True)
     video = models.CharField(max_length=255, null=True, blank=True)
     link = models.CharField(max_length=255)
-    logo = models.FileField(null=True, blank=True, upload_to="campaigns/logos/")
     is_archived = models.BooleanField(default=False)
 
     @property
