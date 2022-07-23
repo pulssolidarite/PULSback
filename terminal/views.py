@@ -241,7 +241,8 @@ class CSVviewSet(APIView):
             writer.writeheader()
             for key in data['payments']:
                 try:
-                    writer.writerow({'Id'  : key['id'] ,  'Date' : key['date'].replace('-','/') ,  'Transaction' : key['status'], 'Donateur': key['donator']['id'], 'Compagne': key['campaign']['name'] ,
+                    donator = key['donator']['id'] if key.get('donator') else ''
+                    writer.writerow({'Id'  : key['id'] ,  'Date' : key['date'].replace('-','/') ,  'Transaction' : key['status'], 'Donateur': donator, 'Compagne': key['campaign']['name'] ,
                     'Terminal': key['terminal']['name'], 'Client': key['terminal']['owner']['customer']['company'], 'TPE': key['terminal']['payment_terminal'], 'Montant en €': key['amount'] ,'Jeu': key['game']['name'] ,'Formule de dons': key['terminal']['donation_formula']   })
                 except Exception as e:
                     print(e)
