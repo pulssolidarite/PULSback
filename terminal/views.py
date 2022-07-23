@@ -240,8 +240,13 @@ class CSVviewSet(APIView):
             writer = csv.DictWriter(response, fieldnames=['Id', 'Date',  'Transaction', 'Donateur', 'Compagne', 'Terminal', 'Client', 'TPE', 'Montant en €','Jeu', 'Formule de dons'])
             writer.writeheader()
             for key in data['payments']:
-                writer.writerow({'Id'  : key['id'] ,  'Date' : key['date'].replace('-','/') ,  'Transaction' : key['status'], 'Donateur': key['donator']['id'], 'Compagne': key['campaign']['name'] ,
-                'Terminal': key['terminal']['name'], 'Client': key['terminal']['owner']['customer']['company'], 'TPE': key['terminal']['payment_terminal'], 'Montant en €': key['amount'] ,'Jeu': key['game']['name'] ,'Formule de dons': key['terminal']['donation_formula']   })
+                try:
+                    donator = key['donator']['id'] if key.get('donator') else ''
+                    writer.writerow({'Id'  : key['id'] ,  'Date' : key['date'].replace('-','/') ,  'Transaction' : key['status'], 'Donateur': donator, 'Compagne': key['campaign']['name'] ,
+                    'Terminal': key['terminal']['name'], 'Client': key['terminal']['owner']['customer']['company'], 'TPE': key['terminal']['payment_terminal'], 'Montant en €': key['amount'] ,'Jeu': key['game']['name'] ,'Formule de dons': key['terminal']['donation_formula']   })
+                except Exception as e:
+                    print(e)
+                    print("KEY", json.dumps(key))
             return response
 
 
