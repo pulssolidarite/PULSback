@@ -3,7 +3,7 @@ from rest_framework import serializers
 from .models import Terminal, Donator, Session, Payment
 from game.models import Game, Core, GameFile, CoreFile
 from fleet.models import Campaign
-from fleet.serializers import CampaignSerializer, UserFullSerializer
+from fleet.serializers import CampaignSerializer, UserFullSerializer, UserSerializer
 from game.serializers import GameSerializer
 
 
@@ -35,6 +35,19 @@ class TerminalSerializer(serializers.ModelSerializer):
     games = serializers.PrimaryKeyRelatedField(queryset=Game.objects.all(), many=True, allow_null=True)
     subscription_type = serializers.ReadOnlyField()
     # owner = UserSerializer(many=False, read_only=True)
+    payment_terminal = serializers.CharField(allow_null=True)
+    donation_formula = serializers.CharField()
+
+    class Meta:
+        model = Terminal
+        fields = '__all__'
+
+
+class TerminalSerializerWithOwner(serializers.ModelSerializer):
+    campaigns = serializers.PrimaryKeyRelatedField(queryset=Campaign.objects.all(), many=True, allow_null=True)
+    games = serializers.PrimaryKeyRelatedField(queryset=Game.objects.all(), many=True, allow_null=True)
+    subscription_type = serializers.ReadOnlyField()
+    owner = UserFullSerializer(many=False, read_only=True)
     payment_terminal = serializers.CharField(allow_null=True)
     donation_formula = serializers.CharField()
 
@@ -93,7 +106,7 @@ class TerminalFullSerializer(serializers.Serializer):
 class PaymentFullSerializer(serializers.ModelSerializer):
     donator = DonatorSerializer(many=False, read_only=True)
     campaign = CampaignSerializer(many=False, read_only=True)
-    terminal = TerminalSerializer(many=False, read_only=True)
+    terminal = TerminalSerializerWithOwner(many=False, read_only=True)
     game = GameSerializer(many=False, read_only=True)
 
 
