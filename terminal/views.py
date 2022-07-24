@@ -76,7 +76,7 @@ class FilterSelectItems(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, format=None):
-        terminals = Terminal.objects.filter().exclude(payment_terminal__isnull=True).exclude(payment_terminal__exact='').distinct('payment_terminal')
+        terminals = Terminal.objects.filter()
         terminals = TerminalSemiSerializer(terminals, many=True, context={"request": request})
         campaigns = Campaign.objects.filter().order_by("name")
         campaigns = CampaignSerializer(campaigns, many=True, context={"request": request})
