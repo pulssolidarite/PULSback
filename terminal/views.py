@@ -163,7 +163,7 @@ class PaymentFiltered(APIView):
                     url_parameters['date__lt'] = datetime.datetime.now().date() + timedelta(days=1)
                 elif (date == "CurrentWeek"):
                     today = datetime.datetime.now()
-                    monday_of_this_week = today - timedelta(days=today.weekday())
+                    monday_of_this_week = today.date() - timedelta(days=today.weekday())
                     url_parameters.pop('date')
                     url_parameters['date__gte'] = monday_of_this_week
                     url_parameters['date__lt'] = monday_of_this_week + timedelta(days=7)
