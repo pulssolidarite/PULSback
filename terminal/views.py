@@ -143,22 +143,30 @@ class PaymentFiltered(APIView):
                 if ('date__gte' in url_parameters) :
                     url_parameters.pop('date__gte')
                 if ( date =="Today" ) :
-                    url_parameters['date']= date = datetime.datetime.now().date()
+                    now = datetime.datetime.now()
+                    today = datetime.datetime(now.year, now.month, now.day)
+                    url_parameters.pop('date')
+                    url_parameters['date__gte'] = today.date()
+                    url_parameters['date__lt'] = today.date() + timedelta(days=1)
                 elif (  date =="Yesterday") :
-                    url_parameters['date'] = datetime.datetime.now().date() - timedelta(days=1)
+                    now = datetime.datetime.now()
+                    today = datetime.datetime(now.year, now.month, now.day)
+                    url_parameters.pop('date')
+                    url_parameters['date__gte'] = today.date() - timedelta(days=1)
+                    url_parameters['date__lt'] = today.date()
                 elif (date == "7days"):
                     some_day_last_week = datetime.datetime.now().date() - timedelta(days=7)
                     monday_of_last_week = some_day_last_week - timedelta(days=(some_day_last_week.isocalendar()[2] - 1))
                     monday_of_this_week = monday_of_last_week + timedelta(days=7)
                     url_parameters.pop('date')
                     url_parameters['date__gte'] = some_day_last_week
-                    url_parameters['date__lt'] = datetime.datetime.now().date()
+                    url_parameters['date__lt'] = datetime.datetime.now().date() + timedelta(days=1)
                 elif (date == "CurrentWeek"):
-                    today = datetime.datetime.now().date()
-                    monday_of_this_week = today - timedelta(days=(today.isocalendar()[2] - 1))
+                    today = datetime.datetime.now()
+                    monday_of_this_week = today - timedelta(days=today.weekday())
                     url_parameters.pop('date')
                     url_parameters['date__gte'] = monday_of_this_week
-                    url_parameters['date__lt'] = today
+                    url_parameters['date__lt'] = monday_of_this_week + timedelta(days=7)
                 elif (date == "LastWeek"):
                     some_day_last_week = datetime.datetime.now().date() - timedelta(days=7)
                     monday_of_last_week = some_day_last_week - timedelta(days=(some_day_last_week.isocalendar()[2] - 1))
