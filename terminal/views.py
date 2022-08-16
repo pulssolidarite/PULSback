@@ -226,11 +226,13 @@ class PaymentFiltered(APIView):
             else :
                 res_objects = Payment.objects.filter(**url_parameters)
                 TotalResults = Payment.objects.filter(**url_parameters)
+
+            res_objects_excluded = res_objects.exclude(status="Skiped").order_by('-date')[:results_number]
             res_objects = res_objects.order_by('-date')[:results_number]
             TotalResults = TotalResults.order_by('-date').count()
             res = PaymentFullSerializer(res_objects, many=True, context={"request": request})
-            amountSum = res_objects.aggregate(Sum('amount'))['amount__sum']
-            amountAvg =  res_objects.aggregate(Avg('amount'))['amount__avg']
+            amountSum = res_objects_excluded.aggregate(Sum('amount'))['amount__sum']
+            amountAvg =  res_objects_excluded.aggregate(Avg('amount'))['amount__avg']
             if (amountAvg ): amountAvg = round(amountAvg,2)
             if (amountSum is None ): amountSum = 0
             if (amountAvg is None): amountAvg = 0.0
@@ -245,12 +247,12 @@ class CSVviewSet(APIView):
             data = dict(res.data)
             response = HttpResponse(content_type='text/csv')
             response['Content-Disposition'] = 'attachment; filename="export.csv"'
-            writer = csv.DictWriter(response, fieldnames=['Id', 'Date',  'Transaction', 'Donateur', 'Compagne', 'Terminal', 'Client', 'TPE', 'Montant en €','Jeu', 'Formule de dons'])
+            writer = csv.DictWriter(response, fieldnames=['Id', 'Date',  'Transaction', 'Donateur', 'Campagne', 'Terminal', 'Client', 'TPE', 'Montant en €','Jeu', 'Formule de dons'])
             writer.writeheader()
             for key in data['payments']:
                 try:
                     donator = key['donator']['id'] if key.get('donator') else ''
-                    writer.writerow({'Id'  : key['id'] ,  'Date' : key['date'].replace('-','/') ,  'Transaction' : key['status'], 'Donateur': donator, 'Compagne': key['campaign']['name'] ,
+                    writer.writerow({'Id'  : key['id'] ,  'Date' : key['date'].replace('-','/') ,  'Transaction' : key['status'], 'Donateur': donator, 'Campagne': key['campaign']['name'] ,
                     'Terminal': key['terminal']['name'], 'Client': key['terminal']['owner']['customer']['company'], 'TPE': key['terminal']['payment_terminal'], 'Montant en €': key['amount'] ,'Jeu': key['game']['name'] ,'Formule de dons': key['terminal']['donation_formula']   })
                 except Exception as e:
                     print(e)
