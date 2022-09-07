@@ -79,3 +79,70 @@ path('dashboard/', DashboardStats.as_view())
 
 ### Errors & fixes
 Please feel free to create pull requests in case you find any critical issue.
+
+
+### Project local setup
+
+#### Virtual environment
+
+Create the virtual environment using
+
+```bash
+virtualenv venv --python=python3.6
+```
+
+Whenever you want to test this projet, you'll need to activate it
+
+```bash
+. venv/bin/activate
+```
+
+Then, install the dependencies (be sure you have activated your virtual environment)
+
+```bash
+pip install --upgrade pip # To upgrade pip if necessary
+pip install -r requirements.txt
+```
+
+#### Local settings
+
+Create a file backend > local_settings.py
+
+#### Run the app
+
+```bash
+export DJANGO_SETTINGS_MODULE=backend.local_settings
+python manage.py runserver
+```
+
+#### Migrate database
+
+The first time you run the app, you may be asked to apply migrations.
+
+```bash
+python manage.py migrate
+```
+
+#### Create superuser
+
+The first time you set up the app, the database will not include any user.
+You need to manually create a first superuser to be able to log into the app.
+
+```bash
+python3 -m django shell
+>>> import django.contrib.auth
+>>> User = django.contrib.auth.get_user_model()
+>>> user = User.objects.create_user('username', password='userpassword')
+>>> user.is_superuser = False
+>>> user.is_staff = False
+>>> user.save()
+```
+
+#### Access backend admin dashboard
+
+Navigate to http://localhost:8000/admin/
+Login with the superuser.
+
+#### Setup and run frontend
+
+Refere to our frontend projet : https://github.com/pulssolidarite/PULSfront
