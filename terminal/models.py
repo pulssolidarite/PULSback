@@ -70,6 +70,8 @@ class Donator(models.Model):
     accept_newsletter = models.BooleanField(blank=True, null=True, default=False)
 
     def __str__(self):
+        if self.email:
+            return self.email
         return 'Donator {}'.format(self.pk)
 
 
