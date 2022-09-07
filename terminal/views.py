@@ -22,8 +22,11 @@ from django.http import HttpResponse
 from openpyxl import Workbook
 from openpyxl.writer.excel import save_virtual_workbook
 from tempfile import NamedTemporaryFile
-
-
+import logging
+from django.conf import settings
+import os
+from datetime import datetime
+import sys
 
 # Terminal Model
 class TerminalViewSet(viewsets.ModelViewSet):
@@ -433,13 +436,57 @@ class AvgSessionByTerminal(APIView):
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-
 # Payment Model
 class PaymentViewSet(viewsets.ModelViewSet):
     serializer_class = PaymentSerializer
     queryset = Payment.objects.all()
     permission_classes = [IsAuthenticated]
 
+    def paymentLog(self, paymentSerializer):
+        # file : ${settings.LOG_PATH}/${terminalName}/${%Y-%m}-payments.log
+        terminalName = TerminalSerializer(Terminal.objects.get(pk=paymentSerializer.data.get("terminal"))).data.get("name")
+        filePath = os.path.join(settings.LOG_PATH, terminalName)
+        if not os.path.exists(filePath):
+            os.makedirs(filePath)
+        fileName = filePath + "/" + datetime.now().strftime("%Y-%m") +'-payments.log'
+        logLine = str(datetime.now()) + " - [PAYMENT] - " + str(paymentSerializer.data)+"\n"
+        
+        log_file = open(fileName, "a")
+        log_file.write(logLine)
+        log_file.close();
+
+    def paymentLogException(self, exception, paymentSerializer, request):
+        if paymentSerializer.data.get("terminal") :
+            # file : ${settings.LOG_PATH}/${terminalName}/${%Y-%m}-payments.log
+            terminalName = TerminalSerializer(Terminal.objects.get(pk=paymentSerializer.data.get("terminal"))).data.get("name")
+            filePath = os.path.join(settings.LOG_PATH, terminalName)
+            if not os.path.exists(filePath):
+                os.makedirs(filePath)
+            fileName = filePath + "/" + datetime.now().strftime("%Y-%m") +'-payments.log'
+            logLine = str(datetime.now()) + " - [ERROR] - " + str(exception) + "\n"
+        else :
+            fileName = settings.LOG_PATH + 'error-payments.log'
+            logLine = str(datetime.now()) + " - [ERROR] - Unknown terminal ID\n"
+
+        logLine += "[REQUEST] - " + str(request) + "\n"
+
+        log_file = open(fileName, "a")
+        log_file.write(logLine)
+        log_file.close();
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        try :
+            serializer.is_valid(raise_exception=True)
+            self.perform_create(serializer)
+
+            self.paymentLog(serializer)
+
+            headers = self.get_success_headers(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        except:
+            self.paymentLogException(sys.exc_info(), serializer, request.data)
+            return Response(None, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class StatsByTerminal(APIView):
     permission_classes = [IsAuthenticated]
