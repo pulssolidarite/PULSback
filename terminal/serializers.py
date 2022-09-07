@@ -13,6 +13,24 @@ class DonatorSerializer(serializers.ModelSerializer):
         model = Donator
         fields = '__all__'
 
+    def create(self, validated_data):
+        payment_id = validated_data.pop("payment_id")
+        donator = Donator.objects.create(
+            **validated_data
+        )
+        
+
+        if payment_id:
+            payment = Payment.objects.get(payment_id)
+            donator.save()
+            payment.donator = donator
+            payment.save()
+
+        else:
+            donator.save()
+
+        return donator
+
 
 class PaymentSerializer(serializers.ModelSerializer):
     class Meta:
