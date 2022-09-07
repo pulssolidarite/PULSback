@@ -79,6 +79,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'backend.wsgi.application'
 
+LOG_PATH = "/tmp/logs/"
+
 
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
