@@ -77,8 +77,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'backend.wsgi.application'
 
-LOG_PATH = "logs/"
-
 
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
@@ -171,5 +169,6 @@ AWS_S3_ADDRESSING_STYLE = "virtual"
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
+LOG_PATH = os.path.join(STATIC_ROOT + "/logs/")
 
 django_heroku.settings(locals())
