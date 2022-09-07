@@ -77,7 +77,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'backend.wsgi.application'
 
-LOG_PATH = "/tmp/logs/"
+LOG_PATH = "logs/"
 
 
 # Database
