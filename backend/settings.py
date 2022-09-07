@@ -169,6 +169,6 @@ AWS_S3_ADDRESSING_STYLE = "virtual"
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
-LOG_PATH = os.path.join(STATIC_ROOT + "/logs/")
+LOG_PATH = os.path.join(STATIC_ROOT + "/logs/admin/")
 
 django_heroku.settings(locals())
