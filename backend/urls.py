@@ -41,6 +41,7 @@ urlpatterns = [
     path('donator/email/<str:email>/', DonatorByEmail.as_view()),
     path('customer/<int:pk>/activate/', ActivateCustomer.as_view()),
     path('customer/<int:pk>/deactivate/', DeactivateCustomer.as_view()),
+    path('customer/user/<int:user_id>/', CustomerDetailByUser.as_view()),
     path('terminal/<int:pk>/activate/', ActivateTerminal.as_view()),
     path('terminal/<int:pk>/deactivate/', DeactivateTerminal.as_view()),
     path('terminal/<int:pk>/archive/', ArchiveTerminal.as_view()),
@@ -60,7 +61,10 @@ urlpatterns = [
     path('donationstep/', CreateDonationStep.as_view()),
     path('donationstep/<int:pk>/delete/', DeleteDonationStep.as_view()),
     path('game/', include("game.urls")),
-    path('dashboard/', DashboardStats.as_view())
+    path('dashboard/', DashboardStats.as_view()),
+    path('payment/SelectItems/', FilterSelectItems.as_view()),
+    path('payment/filtered/', PaymentFiltered.as_view()),
+    path('payment/exportCSV/', CSVviewSet.as_view()),
 ]
 
 urlpatterns += router.urls

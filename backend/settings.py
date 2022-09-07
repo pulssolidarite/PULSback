@@ -26,10 +26,8 @@ SECRET_KEY = os.environ['SECRET_KEY']
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = (os.environ['DEBUG'] == 'True')
 
-# ALLOWED_HOSTS = ['puls-back-prod.herokuapp.com']
 ALLOWED_HOSTS = ['puls-back-preprod.herokuapp.com']
 # ALLOWED_HOSTS = ['127.0.0.1:8000']
-
 
 # Application definition
 
@@ -92,9 +90,14 @@ DATABASES = {
     }
 }
 
+
+DATE_INPUT_FORMATS = ['%d-%m-%Y']
 # REST FRAMEWORK
 
 REST_FRAMEWORK = {
+
+    #'DATETIME_FORMAT': "%d-%m-%Y",
+    'DATETIME_FORMAT': "%d-%m-%Y  %H:%M:%S",
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
@@ -108,7 +111,7 @@ REST_FRAMEWORK = {
 CORS_ORIGIN_WHITELIST = [
     "http://localhost:8080",
     "http://localhost:9080",
-    # "https://puls-front-prod.herokuapp.com",
+    "https://puls-front-prod.herokuapp.com",
     "https://puls-front-preprod.herokuapp.com"
 ]
 

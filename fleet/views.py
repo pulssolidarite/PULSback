@@ -46,6 +46,19 @@ class UserDetail(generics.RetrieveUpdateDestroyAPIView):
         return obj
 
 
+class CustomerDetailByUser(APIView):
+    user_queryset = User.objects.all()
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, user_id, format=None):
+        user = get_object_or_404(self.user_queryset, pk=user_id)
+        self.check_object_permissions(self.request, user)
+
+        serializer = CustomerSerializer(user.customer)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+
 class CustomerViewSet(viewsets.ModelViewSet):
     serializer_class = CustomerSerializer
     queryset = Customer.objects.filter(is_archived=False)
