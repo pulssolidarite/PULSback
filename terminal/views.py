@@ -250,13 +250,27 @@ class CSVviewSet(APIView):
             data = dict(res.data)
             response = HttpResponse(content_type='text/csv')
             response['Content-Disposition'] = 'attachment; filename="export.csv"'
-            writer = csv.DictWriter(response, fieldnames=['Id', 'Date',  'Transaction', 'Donateur', 'Campagne', 'Terminal', 'Client', 'TPE', 'Montant en €','Jeu', 'Formule de dons'])
+            writer = csv.DictWriter(response, fieldnames=['Id', 'Date',  'Transaction', 'Email donateur', 'Accord newsletter', 'Accord asso', 'Campagne', 'Terminal', 'Client', 'TPE', 'Montant en €','Jeu', 'Formule de dons'])
             writer.writeheader()
             for key in data['payments']:
                 try:
-                    donator = key['donator']['id'] if key.get('donator') else ''
-                    writer.writerow({'Id'  : key['id'] ,  'Date' : key['date'].replace('-','/') ,  'Transaction' : key['status'], 'Donateur': donator, 'Campagne': key['campaign']['name'] ,
-                    'Terminal': key['terminal']['name'], 'Client': key['terminal']['owner']['customer']['company'], 'TPE': key['terminal']['payment_terminal'], 'Montant en €': key['amount'] ,'Jeu': key['game']['name'] ,'Formule de dons': key['terminal']['donation_formula']   })
+                    writer.writerow(
+                        {
+                            'Id': key['id'], 
+                            'Date': key['date'].replace('-','/'),
+                            'Transaction': key['status'],
+                            'Email donateur': key['donator']["email"] if key['donator']["email"] else ' ',
+                            'Accord newsletter': "Oui" if key['donator']["accept_newsletter"] else "Non",
+                            'Accord asso': "Oui" if key['donator']["accept_asso"] else "Non",
+                            'Campagne': key['campaign']['name'],
+                            'Terminal': key['terminal']['name'],
+                            'Client': key['terminal']['owner']['customer']['company'],
+                            'TPE': key['terminal']['payment_terminal'],
+                            'Montant en €': key['amount'],
+                            'Jeu': key['game']['name'],
+                            'Formule de dons': key['terminal']['donation_formula'],
+                        }
+                    )
                 except Exception as e:
                     print(e)
                     print("KEY", json.dumps(key))
