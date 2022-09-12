@@ -15,7 +15,7 @@ import django_heroku
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
 
-SENTRY_DNS = os.environ['SENTRY_DNS']
+SENTRY_DNS = os.environ['SENTRY_DSN']
 sentry_sdk.init(
 	dsn=SENTRY_DNS,
 	integrations=[
