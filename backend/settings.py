@@ -14,11 +14,10 @@ import os
 import django_heroku
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
-import sentry_sdk
-from sentry_sdk.integrations.django import DjangoIntegration
 
+SENTRY_DNS = os.environ['SENTRY_DNS']
 sentry_sdk.init(
-	dsn=os.environ['SENTRY_DNS'],
+	dsn=SENTRY_DNS,
 	integrations=[
 		DjangoIntegration(),
 	],
