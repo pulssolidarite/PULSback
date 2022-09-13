@@ -20,6 +20,10 @@ from fleet.views import *
 from terminal.views import *
 from django.conf.urls.static import static
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from django.urls import path
+
+def trigger_error(request):
+    division_by_zero = 1 / 0
 
 
 router = DefaultRouter()
@@ -31,6 +35,7 @@ router.register(r'session', SessionViewSet)
 router.register(r'payment', PaymentViewSet)
 
 urlpatterns = [
+	path('sentry/', trigger_error),
     path('admin/', admin.site.urls),
     path('api-auth', include('rest_framework.urls')),
     path('auth/token/', TokenObtainPairView.as_view()),
