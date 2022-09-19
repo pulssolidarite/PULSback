@@ -133,8 +133,8 @@ python3 -m django shell
 >>> import django.contrib.auth
 >>> User = django.contrib.auth.get_user_model()
 >>> user = User.objects.create_user('username', password='userpassword')
->>> user.is_superuser = False
->>> user.is_staff = False
+>>> user.is_staff = True
+>>> user.is_superuser = True
 >>> user.save()
 ```
 

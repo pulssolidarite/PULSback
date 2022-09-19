@@ -29,34 +29,27 @@ from datetime import datetime
 import sys
 
 # Terminal Model
-class TerminalViewSet(viewsets.ModelViewSet): # TODO disallow non admin user to update or destroy terminals that do not belong to themselves
+class TerminalViewSet(viewsets.ModelViewSet):
     queryset = Terminal.objects.filter(is_archived=False)
     permission_classes = [IsAuthenticated]
     serializer_class = TerminalSerializer
 
+    def get_queryset(self):
+        user: User = self.request.user
+
+        if user.login_customer:
+            return Terminal.objects.filter(is_archived=False, owner__customer=user.login_customer)
+        else:
+            return Terminal.objects.filter(is_archived=False)
+
+
     def retrieve(self, request, *args, **kwargs):
-        user: User = request.user
-
-        terminal: Terminal = get_object_or_404(Terminal, pk=kwargs["pk"])
-
-        if user.is_customer_type() and terminal.ower.customer != user.customer:
-            return HttpResponseForbidden("You are not allowed to fetch this object")
-
-        serializer = TerminalFullSerializer(terminal, many=False)
+        queryset = get_object_or_404(self.get_queryset(), pk=kwargs["pk"])
+        serializer = TerminalFullSerializer(queryset, many=False)
         return Response(serializer.data)
 
-    def list(self, request, *args, **kwargs):
-        user: User = request.user
-
-        queryset = Terminal.objects.none()
-            
-        if user.is_customer_type():
-            queryset = Terminal.objects.filter(is_archived=False, owner__customer=user.customer)
-
-        else:
-            queryset = Terminal.objects.filter(is_archived=False)
-        
-        serializer = TerminalSemiSerializer(queryset, many=True, read_only=True)
+    def list(self, request, *args, **kwargs):        
+        serializer = TerminalSemiSerializer(self.get_queryset(), many=True, read_only=True)
         return Response(serializer.data)
 
 
@@ -69,7 +62,7 @@ class CampaignsByTerminal(APIView):
         try:
             terminal: Terminal = Terminal.objects.get(pk=pk)
 
-            if user.is_customer_type() and terminal.ower.customer != user.customer:
+            if user.login_customer and terminal.ower.customer != user.login_customer:
                 return HttpResponseForbidden("You are not allowed to fetch this object")
 
             campaigns: Campaign = terminal.campaigns
@@ -90,7 +83,18 @@ class DashboardStats(APIView):
         campaigns = Campaign.objects.all()
         campaigns_serlializer = CampaignSerializer(campaigns, many=True, context={"request": request})
 
-        if not user.is_customer_type():
+        if user.login_user:
+            terminals = Terminal.objects.filter(is_on=True, owner__customer=user.login_customer)
+            terminals = TerminalSemiSerializer(terminals, many=True, context={"request": request})
+            collected = Payment.objects.filter(terminal__owner__customer=user.login_customer, date__month=datetime.datetime.now().month, date__year=datetime.datetime.now().year).aggregate(Sum('amount'))['amount__sum']
+            collected_last = Payment.objects.filter(terminal__owner__customer=user.login_customer, date__month=datetime.datetime.now().month - 1, date__year=datetime.datetime.now().year).aggregate(Sum('amount'))['amount__sum']
+            nb_donators = Session.objects.filter(terminal__owner__customer=user.login_customer, start_time__month=datetime.datetime.now().month, start_time__year=datetime.datetime.now().year).count()
+            nb_donators_last = Session.objects.filter(terminal__owner__customer=user.login_customer, start_time__month=datetime.datetime.now().month - 1, start_time__year=datetime.datetime.now().year).count()
+            nb_terminals = Terminal.objects.filter(owner__customer=user.login_customer).count()
+            total_gamesession = Session.objects.filter(terminal__owner__customer=user.login_customer).aggregate(Sum('timesession'))['timesession__sum']
+            return Response({'terminals': terminals.data, 'campaigns': campaigns_serlializer.data, 'collected': collected, 'nb_donators': nb_donators, 'nb_terminals': nb_terminals, 'total_gamesession': total_gamesession, 'collected_last': collected_last, 'nb_donators_last': nb_donators_last}, status=status.HTTP_200_OK)
+
+        else:
             terminals = Terminal.objects.filter(is_on=True)
             terminals = TerminalSemiSerializer(terminals, many=True, context={"request": request})
             
@@ -102,17 +106,7 @@ class DashboardStats(APIView):
             total_gamesession = Session.objects.all().aggregate(Sum('timesession'))['timesession__sum']
             return Response({'terminals': terminals.data, 'campaigns': campaigns_serlializer.data, 'collected': collected, 'nb_donators': nb_donators, 'nb_terminals': nb_terminals, 'total_gamesession': total_gamesession, 'collected_last': collected_last, 'nb_donators_last': nb_donators_last}, status=status.HTTP_200_OK)
 
-        else:
-            terminals = Terminal.objects.filter(is_on=True, owner__customer=user.customer)
-            terminals = TerminalSemiSerializer(terminals, many=True, context={"request": request})
-            collected = Payment.objects.filter(terminal__owner__customer=user.customer, date__month=datetime.datetime.now().month, date__year=datetime.datetime.now().year).aggregate(Sum('amount'))['amount__sum']
-            collected_last = Payment.objects.filter(terminal__owner__customer=user.customer, date__month=datetime.datetime.now().month - 1, date__year=datetime.datetime.now().year).aggregate(Sum('amount'))['amount__sum']
-            nb_donators = Session.objects.filter(terminal__owner__customer=user.customer, start_time__month=datetime.datetime.now().month, start_time__year=datetime.datetime.now().year).count()
-            nb_donators_last = Session.objects.filter(terminal__owner__customer=user.customer, start_time__month=datetime.datetime.now().month - 1, start_time__year=datetime.datetime.now().year).count()
-            nb_terminals = Terminal.objects.filter(owner__customer=user.customer).count()
-            total_gamesession = Session.objects.filter(terminal__owner__customer=user.customer).aggregate(Sum('timesession'))['timesession__sum']
-            return Response({'terminals': terminals.data, 'campaigns': campaigns_serlializer.data, 'collected': collected, 'nb_donators': nb_donators, 'nb_terminals': nb_terminals, 'total_gamesession': total_gamesession, 'collected_last': collected_last, 'nb_donators_last': nb_donators_last}, status=status.HTTP_200_OK)
-
+        
 
 class FilterSelectItems(APIView):
     permission_classes = [IsAuthenticated]
@@ -127,10 +121,9 @@ class FilterSelectItems(APIView):
         games = Game.objects.filter().order_by("name")
         games_serlializer = GameSerializer(games, many=True, context={"request": request})
 
-        if user.is_customer_type():
-            terminals = Terminal.objects.filter(owner__customer=user.customer)
+        if user.login_user:
+            terminals = Terminal.objects.filter(owner__customer=user.login_customer)
             terminals = TerminalSemiSerializer(terminals, many=True, context={"request": request})
-
             return Response({'terminals': terminals.data, 'campaigns': campaigns_serlializer.data, 'games' : games_serlializer.data }, status=status.HTTP_200_OK)
 
         else:
@@ -138,7 +131,6 @@ class FilterSelectItems(APIView):
             terminals = TerminalSemiSerializer(terminals, many=True, context={"request": request})
             customers = Customer.objects.filter().order_by("company")
             customers = CustomerSerializer(customers, many=True, context={"request": request})
-
             return Response({'terminals': terminals.data, 'campaigns': campaigns_serlializer.data, 'games' : games_serlializer.data, 'customers' : customers.data }, status=status.HTTP_200_OK)
 
 

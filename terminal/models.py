@@ -7,7 +7,7 @@ from game.models import Game
 
 class Terminal(models.Model):
     name = models.CharField(max_length=255)
-    owner = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="terminal")
+    owner = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="terminal") # User to log the terminal into the backend
     campaigns = models.ManyToManyField(Campaign, related_name="terminals")
     games = models.ManyToManyField(Game, related_name="terminals")
     location = models.CharField(max_length=255, null=True, blank=True)
