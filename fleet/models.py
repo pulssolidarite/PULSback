@@ -3,8 +3,8 @@ from django.contrib.auth.models import AbstractUser
 from django.db.models import Avg, Sum
 import datetime
 
-
 class Customer(models.Model):
+    login_user = models.OneToOneField("fleet.User", on_delete=models.PROTECT, related_name="login_customer", null=True)
     company = models.CharField(max_length=255)
     representative = models.CharField(max_length=255, null=True)
     logo = models.FileField(blank=True, null=True, upload_to="customers/logos/")
@@ -17,11 +17,50 @@ class Customer(models.Model):
 
 
 class User(AbstractUser):
-    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name="users", null=True)
-    is_admin = models.BooleanField(default=False)
+    """
+    TODO so it can be cleaner and easier for API permission access, we should do something like :
+    Remove is_admin
+
+    user_type = [
+        Admin, # To login to Admin space (and if user has is_staff=True, it can also login to Django admin backoffice, and if user also has is_superuser = True, he got all permissions on Django admin backoffice)
+        Terminal, # To login a terminal from Hera
+        Customer, # To login a customer into the customer space.
+    ]
+
+    Each terminal should have OneToOne relationship with a user of type "terminal"
+    Each customer should have OneToOne relationship with a user of type "customer"
+    
+    """
+
+    USER_TYPE_ADMIN = "admin"
+    USER_TYPE_CUSTOMER = "customer"
+    USER_TYPE_TERMINAL = "terminal"
+
+    USER_TYPE_CHOICES = (
+        (USER_TYPE_ADMIN, "Administrateur"),
+        (USER_TYPE_TERMINAL, "Terminal"),
+        (USER_TYPE_CUSTOMER, "Client"),
+    )
+
+    user_type = models.CharField(
+        verbose_name="Type d'utilisateur", max_length=8, choices=USER_TYPE_CHOICES, null=True
+    )
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name="users", null=True) # This field is for terminal type user, to identify the customer who own the terminal. TODO this field should really be moved to Terminal model
+    is_admin = models.BooleanField(default=False) # TODO remove and use type admin instead
 
     def __str__(self):
         return self.username
+
+    def is_customer_type(self):
+        return self.user_type == self.USER_TYPE_CUSTOMER
+
+    def is_admin_type(self):
+        return self.user_type == self.USER_TYPE_ADMIN or self.is_staff
+
+    def is_terminal_type(self):
+        return self.user_type == self.USER_TYPE_TERMINAL
+
+    
 
 class Campaign(models.Model):
     author = models.ForeignKey(User, on_delete=models.PROTECT, null=True, related_name="campaigns")
