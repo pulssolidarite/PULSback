@@ -29,6 +29,8 @@ router.register(r'terminal', TerminalViewSet)
 router.register(r'donator', DonatorViewSet)
 router.register(r'session', SessionViewSet)
 router.register(r'payment', PaymentViewSet)
+router.register(r'screensaver-medias', ScreenSaverMediaViewSet)
+router.register(r'screensaver-broadcasts', ScreenSaverBroadcastViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),

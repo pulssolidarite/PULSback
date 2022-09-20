@@ -1,8 +1,10 @@
-from .models import Customer, Campaign, User, DonationStep
+from http.client import FORBIDDEN
+from django.core.exceptions import PermissionDenied
+from .models import Customer, Campaign, User, DonationStep, ScreensaverMedia, ScreensaverBroadcast
 from django.conf import settings
 from terminal.views import Terminal, Payment
 from terminal.serializers import PaymentFullSerializer
-from .serializers import CustomerSerializer, CampaignSerializer, UserSerializer, CampaignFullSerializer, DonationStepSerializer
+from .serializers import CustomerSerializer, CampaignSerializer, UserSerializer, CampaignFullSerializer, DonationStepSerializer, ScreenSaverMediaSerializer, ScreenSaverBroadcastSerializer
 from rest_framework import generics
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
@@ -17,7 +19,10 @@ from rest_framework.views import APIView
 from rest_framework import status
 import json
 import datetime
+from rest_framework import permissions
 
+from backend.permissions import IsAdminOrCustomerUser
+from django.db.models import Q
 
 class UserSelf(APIView):
     def get(self, request, format=None):
@@ -160,3 +165,76 @@ class DeleteDonationStep(APIView):
         return Response(status=status.HTTP_200_OK)
 
 
+
+#### Screensaver medias
+
+class _CustomScreenSaverMediaViewSetPermission(permissions.BasePermission):
+    """
+    Custom permission for ScreenSaverMediaViewSet
+    """
+
+    def has_object_permission(self, request, view, obj: ScreensaverMedia):
+        user: User = request.user
+
+        # Allow anyone to post new media
+        if request.method == 'POST':
+            return True
+
+        # Only an admin can get a media owner by an admin, and only the owner can get his onw media
+        if request.method == 'GET':
+            if user.is_admin_type():
+                return obj.owner.is_admin_type()
+
+            else:
+                return obj.owner == user
+
+        # Only admin can edit or delete public media
+        if obj.scope == ScreensaverMedia.PUBLIC_SCOPE:
+            return user.is_admin_type()
+
+        # If media is private and owned by an admin, only an admin can edit or delete it
+        if obj.owner.is_admin_type():
+            return user.is_admin_type()
+
+        # Else, only the owner of this media can edit or delete it
+        return obj.owner == user 
+
+
+class ScreenSaverMediaViewSet(viewsets.ModelViewSet):
+    serializer_class = ScreenSaverMediaSerializer
+    queryset = ScreensaverMedia.objects.none()
+    permission_classes = [IsAuthenticated, IsAdminOrCustomerUser, _CustomScreenSaverMediaViewSetPermission]
+
+    def get_queryset(self):
+        user: User = self.request.user
+
+        if user.is_admin_type():
+            # For admin user, we return every medias owned by an admin
+            return ScreensaverMedia.objects.filter(owner__user_type=User.USER_TYPE_ADMIN)
+        
+        if user.is_customer_type():
+            # For customer user, we return every medias owned by this user and every public medias
+            return ScreensaverMedia.objects.filter(
+                Q(owner=user) | Q(scope=ScreensaverMedia.PUBLIC_SCOPE)
+            )
+
+        raise PermissionDenied()
+
+    
+class ScreenSaverBroadcastViewSet(viewsets.ModelViewSet):
+    serializer_class = ScreenSaverBroadcastSerializer
+    queryset = ScreensaverBroadcast.objects.none()
+    permission_classes = [IsAuthenticated, IsAdminOrCustomerUser]
+
+    def get_queryset(self):
+        user: User = self.request.user
+
+        if user.is_admin_type():
+            # Admin user can access every broadcast of a media owned by an admin
+            return ScreensaverBroadcast.objects.filter(media__owner__user_type=User.USER_TYPE_ADMIN)
+        
+        if user.is_customer_type():
+            # Customer user can access every broadcast to themselves
+            return ScreensaverBroadcast.objects.filter(customer=user)
+
+        raise PermissionDenied()

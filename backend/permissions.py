@@ -36,3 +36,13 @@ class IsSuperStaff(permissions.BasePermission):
             return request.user.is_superuser
         else:
             return False
+
+
+class IsAdminOrCustomerUser(permissions.BasePermission):
+    """
+    Allow only if authenticated user is an admin or a customer
+    """
+    def has_permission(self, request, view):
+        user = request.user
+
+        return user.is_admin_type() or user.is_customer_type()

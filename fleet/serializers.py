@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Customer, Campaign, User, DonationStep
+from .models import Customer, Campaign, ScreensaverMedia, User, DonationStep, ScreensaverBroadcast
 from terminal.models import Payment, Game
 from django.db.models import Sum
 
@@ -128,3 +128,15 @@ class CampaignSerializer(serializers.ModelSerializer):
     def get_collected(self, campaign):
         return Payment.objects.filter(campaign=campaign.id, status="Accepted").aggregate(Sum('amount'))['amount__sum'] or 0
 
+
+class ScreenSaverMediaSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ScreensaverMedia
+        fields = '__all__'
+
+class ScreenSaverBroadcastSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ScreensaverBroadcast
+        fields = '__all__'
