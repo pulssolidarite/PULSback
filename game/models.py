@@ -69,6 +69,7 @@ class Game(models.Model):
     btn_select = models.CharField(max_length=255, default="Select", null=True, blank=True)
     type = models.CharField(max_length=255, default="Unique", null=True, blank=True)
     nb_players = models.IntegerField(default=1, null=True, blank=True)
+    featured = models.BooleanField(verbose_name="Jeux du moment", default=False)
 
     @property
     def nb_terminals(self):

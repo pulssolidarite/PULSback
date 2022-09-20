@@ -20,7 +20,7 @@ from rest_framework import status
 import json
 import datetime
 from rest_framework import permissions
-
+from rest_framework.decorators import action
 from backend.permissions import IsAdminOrCustomerUser
 from django.db.models import Q
 
@@ -108,7 +108,7 @@ class CampaignViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(instance)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def get(self, request, *args, **kwargs):
+    def get(self, request, *args, **kwargs): # TODO get is never called in ModelViewSet, should be list() ?
         queryset = Campaign.objects.filter(is_archived=False)
         serializer = CampaignSerializer(queryset, context={"request": request})
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -119,6 +119,12 @@ class CampaignViewSet(viewsets.ModelViewSet):
         campaign.terminals.clear()
         campaign.save()
         return Response(status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['get'])
+    def featured(self, request):
+        campaign = Campaign.objects.filter(featured=True).first()
+        serializer = CampaignSerializer(campaign)
+        return Response(serializer.data)
 
 class StatsByCampaign(APIView):
     permission_classes = [IsAuthenticated]

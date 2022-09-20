@@ -74,6 +74,7 @@ class Campaign(models.Model):
     video = models.CharField(max_length=255, null=True, blank=True)
     link = models.CharField(max_length=255)
     is_archived = models.BooleanField(default=False)
+    featured = models.BooleanField(verbose_name="Asso du moment", default=False)
 
     @property
     def nb_terminals(self):
