@@ -1,16 +1,57 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.db.models import Avg, Sum
 import datetime
 
 
-class Customer(models.Model):
+class Customer(AbstractUser):
     company = models.CharField(max_length=255)
     representative = models.CharField(max_length=255, null=True)
     logo = models.FileField(blank=True, null=True, upload_to="customers/logos/")
     sales_type = models.CharField(max_length=1, default="A", null=True)
-    is_active = models.BooleanField(default=True)
     is_archived = models.BooleanField(default=False)
+
+
+    #### Herited from AbstractUser
+    
+
+    is_staff = False # Customer user cannot be staff
+    is_superuser = False # Customer user cannot be superuser
+    first_name = None
+    last_name = None
+    email = None
+
+    # username
+    # password
+    # last_login
+    # is_active
+    # date_joined
+
+    # We need to redefine groups field and give a different related_name so it does not clashes with the Terminal.groups related name
+    groups = models.ManyToManyField(
+        Group,
+        verbose_name='Groups de permissions',
+        blank=True,
+        help_text=
+            "The groups this customer belongs to. A customer will get all permissions "
+            "granted to each of their groups.",
+        related_name="customer_set",
+        related_query_name="customer",
+    )
+
+    # We need to redefine user_permissions field and give a different related_name so it does not clashes with the Terminal.user_permissions related name
+    user_permissions = models.ManyToManyField(
+        Permission,
+        verbose_name="Permissions d'utilisateur",
+        blank=True,
+        help_text='Specific permissions for this customer.',
+        related_name="customer_set",
+        related_query_name="customer",
+    )
+
+    class Meta:
+        verbose_name = 'Client'
+        verbose_name_plural = 'Clients'
 
     def __str__(self):
         return self.company or ""
