@@ -264,7 +264,7 @@ class CSVviewSet(APIView):
                             'Accord asso': "Oui" if key['donator']["accept_asso"] else "Non",
                             'Campagne': key['campaign']['name'],
                             'Terminal': key['terminal']['name'],
-                            'Client': key['terminal']['owner']['customer']['company'],
+                            'Client': key['terminal']['customer']['company'],
                             'TPE': key['terminal']['payment_terminal'],
                             'Montant en €': key['amount'],
                             'Jeu': key['game']['name'],

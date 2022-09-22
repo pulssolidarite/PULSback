@@ -47,6 +47,9 @@ class UserDetail(generics.RetrieveUpdateDestroyAPIView):
 
 
 class CustomerDetailByUser(APIView):
+    # TODO deprecated, Customer is directly returned from terminal view
+    # This should be removed
+
     user_queryset = User.objects.all()
     permission_classes = [IsAuthenticated]
 
@@ -54,7 +57,9 @@ class CustomerDetailByUser(APIView):
         user = get_object_or_404(self.user_queryset, pk=user_id)
         self.check_object_permissions(self.request, user)
 
-        serializer = CustomerSerializer(user.customer)
+        customer = user.terminal.customer if user.terminal else user.customer
+
+        serializer = CustomerSerializer(customer)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 

@@ -1,10 +1,50 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.db.models import Avg, Sum
+from django.conf import settings
+
 import datetime
 
 
+class User(AbstractUser):
+    """
+    user can be assigned to a terminal (user.terminal != None),
+    or it can be assigned to a customer (user.customer != None),
+    or it can be an admin (user.is_staff == True) (note that admin users can be superusers or not),
+    
+    The pre save validation makes sure that a user object is an admin or is assigned to a customer or a terminal.
+    It prevents from creating a user that is none of those.
+    """
+
+    # Referenced my Terminal model with related name 'terminal'
+    # Referenced my Customer model with related name 'customer'
+    # Referenced my Campaign model with related name 'campaigns'
+
+    def __str__(self):
+        return self.username
+
+    def save(self, *args, **kwargs):
+        """
+        Perform some pre save validations
+        """
+
+        assert not (self.customer and self.terminal), "User cannot be assigned to a customer and a terminal in the same time. Use different users."
+        assert not (self.is_staff and self.terminal), "Staff member cannot be assigned to a terminal."
+        assert not (self.is_staff and self.customer), "Staff member cannot be assigned to a customer."
+        assert not self.is_staff and not self.terminal and not self.customer, "User should be a staff member, or be assigned to a customer or a terminal. You are trying to create an orhpan user which is not allowed."
+
+        super().save(*args, **kwargs)
+
+    def is_terminal_user(self):
+        return self.terminal is not None
+
+    def is_customer_user(self):
+        return self.customer is not None
+
+
 class Customer(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="customer", null=True) # TODO assign user to every customers then set this field to null=False
+
     company = models.CharField(max_length=255)
     representative = models.CharField(max_length=255, null=True)
     logo = models.FileField(blank=True, null=True, upload_to="customers/logos/")
@@ -16,12 +56,7 @@ class Customer(models.Model):
         return self.company or ""
 
 
-class User(AbstractUser):
-    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name="users", null=True)
-    is_admin = models.BooleanField(default=False)
 
-    def __str__(self):
-        return self.username
 
 class Campaign(models.Model):
     author = models.ForeignKey(User, on_delete=models.PROTECT, null=True, related_name="campaigns")

@@ -1,13 +1,16 @@
 from django.db import models
 from django.conf import settings
-from fleet.models import Campaign
+from fleet.models import Campaign, Customer
 from django.db.models import Avg, Sum
 from game.models import Game
 
 
 class Terminal(models.Model):
     name = models.CharField(max_length=255)
-    owner = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="terminal")
+
+    owner = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="terminal") # User to authenticate terminal TODO rename into user
+    customer = models.ForeignKey(Customer, on_delete=models.PROTECT, related_name="terminals") # Customer who own this terminal
+
     campaigns = models.ManyToManyField(Campaign, related_name="terminals")
     games = models.ManyToManyField(Game, related_name="terminals")
     location = models.CharField(max_length=255, null=True, blank=True)
@@ -23,8 +26,7 @@ class Terminal(models.Model):
 
     @property
     def subscription_type(self):
-        if self.owner.customer:
-            return self.owner.customer.sales_type or None
+        return self.customer.sales_type or None
 
     @property
     def total_donations(self):

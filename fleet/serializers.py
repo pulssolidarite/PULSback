@@ -13,14 +13,13 @@ class CustomerSerializer(serializers.ModelSerializer):
 
 # Serializer pour le model User
 class UserSerializer(serializers.ModelSerializer):
-    #customer = CustomerSerializer(many=False, read_only=True)
+
     class Meta:
         model = User
         fields = '__all__'
 
     def create(self, validated_data):
         obj = User.objects.create_user(validated_data['username'], '', validated_data['password'])
-        obj.customer = validated_data['customer']
         obj.save()
         return obj
 
