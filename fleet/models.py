@@ -33,7 +33,7 @@ class User(AbstractUser):
         assert not (self.is_staff and self.customer), "Staff member cannot be assigned to a customer."
         assert not self.is_staff and not self.terminal and not self.customer, "User should be a staff member, or be assigned to a customer or a terminal. You are trying to create an orhpan user which is not allowed."
 
-        super().save(*args, **kwargs)
+        super(User, self).save(*args, **kwargs)
 
     def is_terminal_user(self):
         return self.terminal is not None
@@ -70,6 +70,22 @@ class Campaign(models.Model):
     video = models.CharField(max_length=255, null=True, blank=True)
     link = models.CharField(max_length=255)
     is_archived = models.BooleanField(default=False)
+    featured = models.BooleanField(verbose_name="Asso du moment", default=False)
+
+    def save(self, *args, **kwargs):
+        """
+        Make sure only one Campaign object has featured == True
+        """
+        if self.featured:
+            try:
+                old_featured = Campaign.objects.get(featured=True)
+                if old_featured and self != old_featured:
+                    old_featured.featured = False
+                    old_featured.save()
+            except Campaign.DoesNotExist:
+                pass
+            
+        super(Campaign, self).save(*args, **kwargs)
 
     @property
     def nb_terminals(self):

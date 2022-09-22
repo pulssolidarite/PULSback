@@ -4,6 +4,7 @@ from .views import *
 urlpatterns = [
     path('', GameListView.as_view()),
     path('create/', GameCreateView.as_view()),
+    path('featured/', FeaturedGameView.as_view()),
     path('<int:pk>/', GameRetrieveDestroyView.as_view()),
     path('<int:pk>/update/', GameUpdateView.as_view()),
     path('upload/', GameFileUploadView.as_view()),

@@ -5,6 +5,7 @@ from terminal.serializers import PaymentFullSerializer
 from .serializers import CustomerSerializer, CampaignSerializer, UserSerializer, CampaignFullSerializer, DonationStepSerializer
 from rest_framework import generics
 from rest_framework import viewsets
+from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from backend.permissions import IsSuperStaff, NormalUserListRetrieveOnly, NormalUserIsCurrentUser
 from rest_framework.authtoken.views import ObtainAuthToken
@@ -108,7 +109,7 @@ class CampaignViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(instance)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def get(self, request, *args, **kwargs):
+    def get(self, request, *args, **kwargs): # TODO get is never called in ModelViewSet, should be list() ?
         queryset = Campaign.objects.filter(is_archived=False)
         serializer = CampaignSerializer(queryset, context={"request": request})
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -119,6 +120,12 @@ class CampaignViewSet(viewsets.ModelViewSet):
         campaign.terminals.clear()
         campaign.save()
         return Response(status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['get'])
+    def featured(self, request):
+        campaign = Campaign.objects.filter(featured=True).first()
+        serializer = CampaignSerializer(campaign)
+        return Response(serializer.data)
 
 class StatsByCampaign(APIView):
     permission_classes = [IsAuthenticated]

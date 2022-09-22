@@ -132,9 +132,7 @@ You need to manually create a first superuser to be able to log into the app.
 python3 -m django shell
 >>> import django.contrib.auth
 >>> User = django.contrib.auth.get_user_model()
->>> user = User.objects.create_user('username', password='userpassword')
->>> user.is_superuser = False
->>> user.is_staff = False
+>>> user = User.objects.create_superuser('username', password='userpassword')
 >>> user.save()
 ```
 

@@ -1,6 +1,14 @@
 from rest_framework import permissions
 
 
+class IsAdminOrCustomerUser(permissions.BasePermission):
+    """
+    Global permission to allow only if auth user is a staff or assigned to a customer
+    """
+
+    def has_permission(self, request, view):
+        return bool(request.user.is_staff or request.user.is_customer_user())
+
 class NormalUserListRetrieveOnly(permissions.BasePermission):
     """
     Global permission check for staff users.

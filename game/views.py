@@ -56,6 +56,13 @@ class GameFileUploadView(APIView):
                 print(form.errors)
                 return Response(status=status.HTTP_400_BAD_REQUEST)
 
+class FeaturedGameView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        game = Game.objects.filter(featured=True).first()
+        serializer = GameLightSerializer(game)
+        return Response(serializer.data)
 
 # Core Model
 class CoreListView(ListAPIView):

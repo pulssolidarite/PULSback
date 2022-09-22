@@ -69,6 +69,22 @@ class Game(models.Model):
     btn_select = models.CharField(max_length=255, default="Select", null=True, blank=True)
     type = models.CharField(max_length=255, default="Unique", null=True, blank=True)
     nb_players = models.IntegerField(default=1, null=True, blank=True)
+    featured = models.BooleanField(verbose_name="Jeux du moment", default=False)
+
+    def save(self, *args, **kwargs):
+        """
+        Make sure only one Game object has featured == True
+        """
+        if self.featured:
+            try:
+                old_featured = Game.objects.get(featured=True)
+                if old_featured and self != old_featured:
+                    old_featured.featured = False
+                    old_featured.save()
+            except Game.DoesNotExist:
+                pass
+            
+        super(Game, self).save(*args, **kwargs)
 
     @property
     def nb_terminals(self):
