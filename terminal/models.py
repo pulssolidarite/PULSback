@@ -3,15 +3,15 @@ from django.conf import settings
 from fleet.models import Campaign
 from django.db.models import Avg, Sum
 from game.models import Game
+from django.contrib.auth.models import AbstractUser, Group, Permission
 
 
-class Terminal(models.Model):
+class Terminal(AbstractUser):
     name = models.CharField(max_length=255)
     owner = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="terminal")
     campaigns = models.ManyToManyField(Campaign, related_name="terminals")
     games = models.ManyToManyField(Game, related_name="terminals")
     location = models.CharField(max_length=255, null=True, blank=True)
-    is_active = models.BooleanField(default=False)
     is_on = models.BooleanField(default=False)
     is_playing = models.BooleanField(default=False)
     is_archived = models.BooleanField(default=False)
@@ -19,6 +19,48 @@ class Terminal(models.Model):
     free_mode_text = models.CharField(max_length=250, blank=True, null=True)
     payment_terminal = models.CharField(max_length=250, null=True, blank=True)
     donation_formula = models.CharField(max_length=250, null=True)
+
+
+    #### Herited from AbstractUser
+    
+
+    is_staff = False # Terminal user cannot be staff
+    is_superuser = False # Terminal user cannot be superuser
+    first_name = None
+    last_name = None
+    email = None
+    is_active = models.BooleanField(default=False) # Change field default value to False
+
+    # username
+    # password
+    # last_login
+    # date_joined
+
+    # We need to redefine groups field and give a different related_name so it does not clashes with the Customer.groups related name
+    groups = models.ManyToManyField(
+        Group,
+        verbose_name='Groups de permissions',
+        blank=True,
+        help_text=
+            "The groups this terminal belongs to. A terminal will get all permissions "
+            "granted to each of their groups.",
+        related_name="terminal_set",
+        related_query_name="terminal",
+    )
+
+    # We need to redefine user_permissions field and give a different related_name so it does not clashes with the Customer.user_permissions related name
+    user_permissions = models.ManyToManyField(
+        Permission,
+        verbose_name="Permissions d'utilisateur",
+        blank=True,
+        help_text='Specific permissions for this terminal.',
+        related_name="terminal_set",
+        related_query_name="terminal",
+    )
+
+    class Meta:
+        verbose_name = 'Terminal'
+        verbose_name_plural = 'Terminaux'
 
 
     @property
