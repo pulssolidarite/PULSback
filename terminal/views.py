@@ -27,71 +27,150 @@ from django.conf import settings
 import os
 from datetime import datetime
 import sys
+from backend.permissions import IsAdminOrCustomerUser
+from django.core.exceptions import PermissionDenied
 
 # Terminal Model
 class TerminalViewSet(viewsets.ModelViewSet):
+    """
+    This view is used from SETH front admin or customer
+    """
+
     queryset = Terminal.objects.filter(is_archived=False)
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsAdminOrCustomerUser] # Only accessible for admin or customer users
     serializer_class = TerminalSerializer
 
+    def get_queryset(self):
+        user: User = self.request.user
+
+        if user.is_customer_user():
+            return Terminal.objects.filter(is_archived=False, customer=user.customer) # For customer, return all terminals that belong to this customer
+
+        elif user.is_staff:
+            return Terminal.objects.filter(is_archived=False)
+
+        else:
+            raise PermissionDenied()
+
     def retrieve(self, request, *args, **kwargs):
-        queryset = get_object_or_404(Terminal, pk=kwargs["pk"])
+        queryset = get_object_or_404(self.get_queryset(), pk=kwargs["pk"])
         serializer = TerminalFullSerializer(queryset, many=False)
         return Response(serializer.data)
 
     def list(self, request, *args, **kwargs):
-        queryset = Terminal.objects.filter(is_archived=False)
-        serializer = TerminalSemiSerializer(queryset, many=True, read_only=True)
+        serializer = TerminalSemiSerializer(self.get_queryset(), many=True, read_only=True)
         return Response(serializer.data)
 
 
 class CampaignsByTerminal(APIView):
-    permission_classes = [IsAuthenticated]
+    """
+    This view is used from SETH front admin or customer
+    """
+
+    permission_classes = [IsAuthenticated, IsAdminOrCustomerUser] # Only accessible for admin or customer users
+
+    def get_queryset(self):
+        user: User = self.request.user
+
+        if user.is_customer_user():
+            return Terminal.objects.filter(is_archived=False, customer=user.customer) # For customer, return all terminals that belong to this customer
+
+        elif user.is_staff:
+            return Terminal.objects.filter(is_archived=False)
+
+        else:
+            raise PermissionDenied()
 
     def get(self, request, pk, format=None):
-        try:
-            campaigns = Terminal.objects.get(pk=pk).campaigns
-            campaigns = CampaignSerializer(campaigns, many=True, context={"request": request})
-            return Response(campaigns.data, status=status.HTTP_200_OK)
-        except ObjectDoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+        terminal = get_object_or_404(self.get_queryset(), pk=pk)
+        campaigns = terminal.campains
+        serializer = CampaignSerializer(campaigns, many=True, context={"request": request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
+        
 
 
 class DashboardStats(APIView):
-    permission_classes = [IsAuthenticated]
+    """
+    This view is used from SETH front admin or customer
+    """
+
+    permission_classes = [IsAuthenticated, IsAdminOrCustomerUser] # Only accessible for admin or customer users
 
     def get(self, request, format=None):
-        terminals = Terminal.objects.filter(is_on=True)
-        terminals = TerminalSemiSerializer(terminals, many=True, context={"request": request})
-        campaigns = Campaign.objects.filter()
-        campaigns = CampaignSerializer(campaigns, many=True, context={"request": request})
-        collected = Payment.objects.filter(date__month=datetime.datetime.now().month, date__year=datetime.datetime.now().year).aggregate(Sum('amount'))['amount__sum']
-        collected_last = Payment.objects.filter(date__month=datetime.datetime.now().month - 1, date__year=datetime.datetime.now().year).aggregate(Sum('amount'))['amount__sum']
-        nb_donators = Session.objects.filter(start_time__month=datetime.datetime.now().month, start_time__year=datetime.datetime.now().year).count()
-        nb_donators_last = Session.objects.filter(start_time__month=datetime.datetime.now().month - 1, start_time__year=datetime.datetime.now().year).count()
-        nb_terminals = Terminal.objects.all().count()
-        total_gamesession = Session.objects.all().aggregate(Sum('timesession'))['timesession__sum']
-        return Response({'terminals': terminals.data, 'campaigns': campaigns.data, 'collected': collected, 'nb_donators': nb_donators, 'nb_terminals': nb_terminals, 'total_gamesession': total_gamesession, 'collected_last': collected_last, 'nb_donators_last': nb_donators_last}, status=status.HTTP_200_OK)
+        user: User = request.user
+
+        campaigns = Campaign.objects.all()
+        campaigns_serlializer = CampaignSerializer(campaigns, many=True, context={"request": request})
+
+        if user.is_customer_user():
+            terminals = Terminal.objects.filter(is_on=True, owner__customer=user.login_customer)
+            terminals = TerminalSemiSerializer(terminals, many=True, context={"request": request})
+            collected = Payment.objects.filter(terminal__owner__customer=user.login_customer, date__month=datetime.datetime.now().month, date__year=datetime.datetime.now().year).aggregate(Sum('amount'))['amount__sum']
+            collected_last = Payment.objects.filter(terminal__owner__customer=user.login_customer, date__month=datetime.datetime.now().month - 1, date__year=datetime.datetime.now().year).aggregate(Sum('amount'))['amount__sum']
+            nb_donators = Session.objects.filter(terminal__owner__customer=user.login_customer, start_time__month=datetime.datetime.now().month, start_time__year=datetime.datetime.now().year).count()
+            nb_donators_last = Session.objects.filter(terminal__owner__customer=user.login_customer, start_time__month=datetime.datetime.now().month - 1, start_time__year=datetime.datetime.now().year).count()
+            nb_terminals = Terminal.objects.filter(owner__customer=user.login_customer).count()
+            total_gamesession = Session.objects.filter(terminal__owner__customer=user.login_customer).aggregate(Sum('timesession'))['timesession__sum']
+            return Response({'terminals': terminals.data, 'campaigns': campaigns_serlializer.data, 'collected': collected, 'nb_donators': nb_donators, 'nb_terminals': nb_terminals, 'total_gamesession': total_gamesession, 'collected_last': collected_last, 'nb_donators_last': nb_donators_last}, status=status.HTTP_200_OK)
+
+        elif user.is_staff:
+            terminals = Terminal.objects.filter(is_on=True)
+            terminals = TerminalSemiSerializer(terminals, many=True, context={"request": request})
+
+            collected = Payment.objects.filter(date__month=datetime.datetime.now().month, date__year=datetime.datetime.now().year).aggregate(Sum('amount'))['amount__sum']
+            collected_last = Payment.objects.filter(date__month=datetime.datetime.now().month - 1, date__year=datetime.datetime.now().year).aggregate(Sum('amount'))['amount__sum']
+            nb_donators = Session.objects.filter(start_time__month=datetime.datetime.now().month, start_time__year=datetime.datetime.now().year).count()
+            nb_donators_last = Session.objects.filter(start_time__month=datetime.datetime.now().month - 1, start_time__year=datetime.datetime.now().year).count()
+            nb_terminals = Terminal.objects.all().count()
+            total_gamesession = Session.objects.all().aggregate(Sum('timesession'))['timesession__sum']
+            return Response({'terminals': terminals.data, 'campaigns': campaigns_serlializer.data, 'collected': collected, 'nb_donators': nb_donators, 'nb_terminals': nb_terminals, 'total_gamesession': total_gamesession, 'collected_last': collected_last, 'nb_donators_last': nb_donators_last}, status=status.HTTP_200_OK)
+
+        else:
+            raise PermissionDenied()
+
 
 
 
 class FilterSelectItems(APIView):
-    permission_classes = [IsAuthenticated]
+    """
+    This view is used from SETH front admin or customer
+    """
+
+    permission_classes = [IsAuthenticated, IsAdminOrCustomerUser] # Only accessible for admin or customer users
 
     def get(self, request, format=None):
-        terminals = Terminal.objects.filter()
-        terminals = TerminalSemiSerializer(terminals, many=True, context={"request": request})
-        campaigns = Campaign.objects.filter().order_by("name")
-        campaigns = CampaignSerializer(campaigns, many=True, context={"request": request})
-        games = Game.objects.filter().order_by("name")
-        games = GameSerializer(games, many=True, context={"request": request})
-        customers = Customer.objects.filter().order_by("company")
-        customers = CustomerSerializer(customers, many=True, context={"request": request})
-        return Response({'terminals': terminals.data, 'campaigns': campaigns.data, 'games' : games.data, 'customers' : customers.data }, status=status.HTTP_200_OK)
 
+        user: User = request.user
+
+        campaigns = Campaign.objects.filter().order_by("name")
+        campaigns_serlializer = CampaignSerializer(campaigns, many=True, context={"request": request})
+
+        games = Game.objects.filter().order_by("name")
+        games_serlializer = GameSerializer(games, many=True, context={"request": request})
+
+        if user.is_customer_user():
+            terminals = Terminal.objects.filter(owner__customer=user.login_customer)
+            terminals = TerminalSemiSerializer(terminals, many=True, context={"request": request})
+            return Response({'terminals': terminals.data, 'campaigns': campaigns_serlializer.data, 'games' : games_serlializer.data }, status=status.HTTP_200_OK)
+
+        elif user.is_staff:
+            terminals = Terminal.objects.all()
+            terminals = TerminalSemiSerializer(terminals, many=True, context={"request": request})
+            customers = Customer.objects.filter().order_by("company")
+            customers = CustomerSerializer(customers, many=True, context={"request": request})
+            return Response({'terminals': terminals.data, 'campaigns': campaigns_serlializer.data, 'games' : games_serlializer.data, 'customers' : customers.data }, status=status.HTTP_200_OK)
+        
+        else:
+            raise PermissionDenied()
 
 class PaymentFiltered(APIView):
-    permission_classes = [IsAuthenticated]
+    """
+    This view is used from SETH front admin or customer
+    """
+    # TODO filter by user
+
+    permission_classes = [IsAuthenticated, IsAdminOrCustomerUser] # Only accessible for admin or customer users
+
     def get(self, request, format=None):
             campaign = self.request.query_params.get('campaign')
             terminal = self.request.query_params.get('terminal_id')
@@ -244,6 +323,12 @@ class PaymentFiltered(APIView):
 
 
 class CSVviewSet(APIView):
+    """
+    This view is used from SETH front admin or customer
+    """
+    # TODO filter by user
+
+    permission_classes = [IsAuthenticated, IsAdminOrCustomerUser] # Only accessible for admin or customer users
 
     def get(self, request, format=None):
             res = PaymentFiltered.get(self, request)
@@ -264,7 +349,7 @@ class CSVviewSet(APIView):
                             'Accord asso': "Oui" if key['donator']["accept_asso"] else "Non",
                             'Campagne': key['campaign']['name'],
                             'Terminal': key['terminal']['name'],
-                            'Client': key['terminal']['owner']['customer']['company'],
+                            'Client': key['terminal']['customer']['company'],
                             'TPE': key['terminal']['payment_terminal'],
                             'Montant en €': key['amount'],
                             'Jeu': key['game']['name'],

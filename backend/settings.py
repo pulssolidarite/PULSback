@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'fleet',
     'terminal',
     'game',
+    "screensaver",
     'rest_framework',
     'corsheaders'
 ]
