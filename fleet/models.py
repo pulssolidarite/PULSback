@@ -20,8 +20,6 @@ class User(AbstractUser):
     # Referenced my Customer model with related name 'customer'
     # Referenced my Campaign model with related name 'campaigns'
 
-    customer = models.ForeignKey("fleet.Customer", on_delete=models.CASCADE, related_name="users", null=True)
-
     def __str__(self):
         return self.username
 

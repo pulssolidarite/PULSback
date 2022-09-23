@@ -6,8 +6,11 @@ import django.db.models.deletion
 def populate_terminal_customer(apps, schema_editor):
     TerminalModel = apps.get_model('terminal', 'Terminal')
     for terminal_object in TerminalModel.objects.all():
-        terminal_object.customer = terminal_object.owner.customer
-        terminal_object.save()
+        try:
+            terminal_object.customer = terminal_object.owner.customer
+            terminal_object.save()
+        except:
+            pass
 
 
 def reverse_populate_terminal_customer():
