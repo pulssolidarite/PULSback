@@ -100,14 +100,14 @@ class DashboardStats(APIView):
         campaigns_serlializer = CampaignSerializer(campaigns, many=True, context={"request": request})
 
         if user.is_customer_user():
-            terminals = Terminal.objects.filter(is_on=True, owner__customer=user.get_customer())
+            terminals = Terminal.objects.filter(is_on=True, customer=user.get_customer())
             terminals = TerminalSemiSerializer(terminals, many=True, context={"request": request})
-            collected = Payment.objects.filter(terminal__owner__customer=user.get_customer(), date__month=datetime.datetime.now().month, date__year=datetime.datetime.now().year).aggregate(Sum('amount'))['amount__sum']
-            collected_last = Payment.objects.filter(terminal__owner__customer=user.get_customer(), date__month=datetime.datetime.now().month - 1, date__year=datetime.datetime.now().year).aggregate(Sum('amount'))['amount__sum']
-            nb_donators = Session.objects.filter(terminal__owner__customer=user.get_customer(), start_time__month=datetime.datetime.now().month, start_time__year=datetime.datetime.now().year).count()
-            nb_donators_last = Session.objects.filter(terminal__owner__customer=user.get_customer(), start_time__month=datetime.datetime.now().month - 1, start_time__year=datetime.datetime.now().year).count()
-            nb_terminals = Terminal.objects.filter(owner__customer=user.get_customer()).count()
-            total_gamesession = Session.objects.filter(terminal__owner__customer=user.get_customer()).aggregate(Sum('timesession'))['timesession__sum']
+            collected = Payment.objects.filter(terminal__customer=user.get_customer(), date__month=datetime.datetime.now().month, date__year=datetime.datetime.now().year).aggregate(Sum('amount'))['amount__sum']
+            collected_last = Payment.objects.filter(terminal__customer=user.get_customer(), date__month=datetime.datetime.now().month - 1, date__year=datetime.datetime.now().year).aggregate(Sum('amount'))['amount__sum']
+            nb_donators = Session.objects.filter(terminal__customer=user.get_customer(), start_time__month=datetime.datetime.now().month, start_time__year=datetime.datetime.now().year).count()
+            nb_donators_last = Session.objects.filter(terminal__customer=user.get_customer(), start_time__month=datetime.datetime.now().month - 1, start_time__year=datetime.datetime.now().year).count()
+            nb_terminals = Terminal.objects.filter(customer=user.get_customer()).count()
+            total_gamesession = Session.objects.filter(terminal__customer=user.get_customer()).aggregate(Sum('timesession'))['timesession__sum']
             return Response({'terminals': terminals.data, 'campaigns': campaigns_serlializer.data, 'collected': collected, 'nb_donators': nb_donators, 'nb_terminals': nb_terminals, 'total_gamesession': total_gamesession, 'collected_last': collected_last, 'nb_donators_last': nb_donators_last}, status=status.HTTP_200_OK)
 
         elif user.is_staff:
@@ -146,7 +146,7 @@ class FilterSelectItems(APIView):
         games_serlializer = GameSerializer(games, many=True, context={"request": request})
 
         if user.is_customer_user():
-            terminals = Terminal.objects.filter(owner__customer=user.get_customer())
+            terminals = Terminal.objects.filter(customer=user.get_customer())
             terminals = TerminalSemiSerializer(terminals, many=True, context={"request": request})
             return Response({'terminals': terminals.data, 'campaigns': campaigns_serlializer.data, 'games' : games_serlializer.data }, status=status.HTTP_200_OK)
 
