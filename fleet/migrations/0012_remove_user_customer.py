@@ -7,7 +7,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('fleet', '0011_remove_user_is_admin'),
-        ('terminal', '0016_terminal_customer'),
+        #('terminal', '0016_terminal_customer'),
     ]
 
     operations = [
