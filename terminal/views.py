@@ -1,34 +1,31 @@
-from django.views.generic.list import ListView
-from rest_framework import viewsets
-from rest_framework.generics import CreateAPIView, ListAPIView, ListCreateAPIView, RetrieveDestroyAPIView, RetrieveUpdateDestroyAPIView, UpdateAPIView
-from rest_framework.views import APIView
-from .models import Terminal, Donator, Session, Payment,Campaign
-from game.models import Game, Core, GameFile, CoreFile
-from fleet.models import Customer,User
-from fleet.serializers import CustomerSerializer
-from .serializers import *
-from fleet.serializers import CampaignSerializer
+import datetime
+import json
+import csv
+import os
+import sys
+
+from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
+from django.db.models import Avg, Sum
+from django.shortcuts import get_object_or_404
+from django.http import HttpResponse
+from django.conf import settings
+
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.parsers import MultiPartParser
-from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Avg, Sum
-from django.shortcuts import get_object_or_404
-import json
-from datetime import timedelta
-import csv
-from django.http import HttpResponse
-from openpyxl import Workbook
-from openpyxl.writer.excel import save_virtual_workbook
-from tempfile import NamedTemporaryFile
-import logging
-from django.conf import settings
-import os
-from datetime import datetime
-import sys
-from backend.permissions import IsAdminOrCustomerUser
-from django.core.exceptions import PermissionDenied
+from rest_framework import viewsets
+from rest_framework.views import APIView
+
+from game.models import Game
+
+from fleet.models import Customer, User
+from fleet.serializers import CustomerSerializer, CampaignSerializer
+
+from backend.permissions import IsAdminOrCustomerUser, NormalUserListRetrieveOnly
+
+from .models import Terminal, Donator, Session, Payment,Campaign
+from .serializers import *
+
 
 # Terminal Model
 class TerminalViewSet(viewsets.ModelViewSet):
@@ -37,7 +34,7 @@ class TerminalViewSet(viewsets.ModelViewSet):
     """
 
     queryset = Terminal.objects.filter(is_archived=False)
-    permission_classes = [IsAuthenticated, IsAdminOrCustomerUser] # Only accessible for admin or customer users
+    permission_classes = [IsAuthenticated, IsAdminOrCustomerUser, NormalUserListRetrieveOnly]
     serializer_class = TerminalSerializer
 
     def get_queryset(self):
@@ -229,30 +226,30 @@ class PaymentFiltered(APIView):
                     today = datetime.datetime(now.year, now.month, now.day)
                     url_parameters.pop('date')
                     url_parameters['date__gte'] = today.date()
-                    url_parameters['date__lt'] = today.date() + timedelta(days=1)
+                    url_parameters['date__lt'] = today.date() + datetime.timedelta(days=1)
                 elif (  date =="Yesterday") :
                     now = datetime.datetime.now()
                     today = datetime.datetime(now.year, now.month, now.day)
                     url_parameters.pop('date')
-                    url_parameters['date__gte'] = today.date() - timedelta(days=1)
+                    url_parameters['date__gte'] = today.date() - datetime.timedelta(days=1)
                     url_parameters['date__lt'] = today.date()
                 elif (date == "7days"):
-                    some_day_last_week = datetime.datetime.now().date() - timedelta(days=7)
-                    monday_of_last_week = some_day_last_week - timedelta(days=(some_day_last_week.isocalendar()[2] - 1))
-                    monday_of_this_week = monday_of_last_week + timedelta(days=7)
+                    some_day_last_week = datetime.datetime.now().date() - datetime.timedelta(days=7)
+                    monday_of_last_week = some_day_last_week - datetime.timedelta(days=(some_day_last_week.isocalendar()[2] - 1))
+                    monday_of_this_week = monday_of_last_week + datetime.timedelta(days=7)
                     url_parameters.pop('date')
                     url_parameters['date__gte'] = some_day_last_week
-                    url_parameters['date__lt'] = datetime.datetime.now().date() + timedelta(days=1)
+                    url_parameters['date__lt'] = datetime.date.today() + datetime.timedelta(days=1)
                 elif (date == "CurrentWeek"):
                     today = datetime.datetime.now()
-                    monday_of_this_week = today.date() - timedelta(days=today.weekday())
+                    monday_of_this_week = today.date() - datetime.timedelta(days=today.weekday())
                     url_parameters.pop('date')
                     url_parameters['date__gte'] = monday_of_this_week
-                    url_parameters['date__lt'] = monday_of_this_week + timedelta(days=7)
+                    url_parameters['date__lt'] = monday_of_this_week + datetime.timedelta(days=7)
                 elif (date == "LastWeek"):
-                    some_day_last_week = datetime.datetime.now().date() - timedelta(days=7)
-                    monday_of_last_week = some_day_last_week - timedelta(days=(some_day_last_week.isocalendar()[2] - 1))
-                    monday_of_this_week = monday_of_last_week + timedelta(days=7)
+                    some_day_last_week = datetime.now().date() - datetime.timedelta(days=7)
+                    monday_of_last_week = some_day_last_week - datetime.timedelta(days=(some_day_last_week.isocalendar()[2] - 1))
+                    monday_of_this_week = monday_of_last_week + datetime.timedelta(days=7)
                     print (monday_of_last_week)
                     print (monday_of_this_week)
                     url_parameters.pop('date')
@@ -261,16 +258,16 @@ class PaymentFiltered(APIView):
                 elif (date == "CurrentMonth"):
                     now = datetime.datetime.now()
                     start_month = datetime.datetime(now.year, now.month, 1)
-                    date_on_next_month = start_month + datetime.timedelta(35)
+                    date_on_next_month = start_month + datetime.datetime.timedelta(35)
                     start_next_month = datetime.datetime(date_on_next_month.year, date_on_next_month.month, 1)
-                    last_day_month = start_next_month - datetime.timedelta(1)
+                    last_day_month = start_next_month - datetime.datetime.timedelta(1)
                     url_parameters.pop('date')
                     url_parameters['date__gte'] = start_month.date()
                     url_parameters['date__lt'] = last_day_month.date()
                 elif (date == "LastMonth"):
-                    today = datetime.date.today()
+                    today = datetime.datetime.date.today()
                     first = today.replace(day=1)  # first date of current month
-                    end_previous_month = first - datetime.timedelta(days=1)
+                    end_previous_month = first - datetime.datetime.timedelta(days=1)
                     start_previous_month = end_previous_month.replace(day=1)
                     url_parameters.pop('date')
                     url_parameters['date__gte'] = start_previous_month
@@ -547,8 +544,8 @@ class PaymentViewSet(viewsets.ModelViewSet):
         filePath = os.path.join(settings.LOG_PATH, terminalName)
         if not os.path.exists(filePath):
             os.makedirs(filePath)
-        fileName = filePath + "/" + datetime.now().strftime("%Y-%m") +'-payments.log'
-        logLine = str(datetime.now()) + " - [PAYMENT] - " + str(paymentSerializer.data)+"\n"
+        fileName = filePath + "/" + datetime.datetime.now().strftime("%Y-%m") +'-payments.log'
+        logLine = str(datetime.datetime.now()) + " - [PAYMENT] - " + str(paymentSerializer.data)+"\n"
         
         log_file = open(fileName, "a")
         log_file.write(logLine)
@@ -561,11 +558,11 @@ class PaymentViewSet(viewsets.ModelViewSet):
             filePath = os.path.join(settings.LOG_PATH, terminalName)
             if not os.path.exists(filePath):
                 os.makedirs(filePath)
-            fileName = filePath + "/" + datetime.now().strftime("%Y-%m") +'-payments.log'
-            logLine = str(datetime.now()) + " - [ERROR] - " + str(exception) + "\n"
+            fileName = filePath + "/" + datetime.datetime.now().strftime("%Y-%m") +'-payments.log'
+            logLine = str(datetime.datetime.now()) + " - [ERROR] - " + str(exception) + "\n"
         else :
             fileName = settings.LOG_PATH + 'error-payments.log'
-            logLine = str(datetime.now()) + " - [ERROR] - Unknown terminal ID\n"
+            logLine = str(datetime.datetime.now()) + " - [ERROR] - Unknown terminal ID\n"
 
         logLine += "[REQUEST] - " + str(request) + "\n"
 
