@@ -13,7 +13,6 @@ class User(AbstractUser):
     or it can be an admin (user.is_staff == True) (note that admin users can be superusers or not),
     
     The pre save validation makes sure that a user object is an admin or is assigned to a customer or a terminal.
-    It prevents from creating a user that is none of those.
     """
 
     # Referenced my Terminal model with related name 'terminal'
@@ -31,7 +30,6 @@ class User(AbstractUser):
         assert not (self.get_customer() and self.get_terminal()), "User cannot be assigned to a customer and a terminal in the same time. Use different users."
         assert not (self.is_staff and self.get_terminal()), "Staff member cannot be assigned to a terminal."
         assert not (self.is_staff and self.get_customer()), "Staff member cannot be assigned to a customer."
-        assert not self.is_staff and not self.get_terminal() and not self.get_customer(), "User should be a staff member, or be assigned to a customer or a terminal. You are trying to create an orhpan user which is not allowed."
 
         super(User, self).save(*args, **kwargs)
 
