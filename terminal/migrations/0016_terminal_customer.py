@@ -6,7 +6,7 @@ import django.db.models.deletion
 def populate_terminal_customer(apps, schema_editor):
     TerminalModel = apps.get_model('terminal', 'Terminal')
     for terminal_object in TerminalModel.objects.all():
-        try:
+        try: # TODO remove catch
             terminal_object.customer = terminal_object.owner.customer
             terminal_object.save()
         except:
@@ -42,7 +42,7 @@ class Migration(migrations.Migration):
             model_name='terminal',
             name='customer',
             field=models.ForeignKey(
-                null=False,
+                null=True, # TODO set non nullable
                 on_delete=django.db.models.deletion.PROTECT,
                 related_name='terminals',
                 to='fleet.Customer',
