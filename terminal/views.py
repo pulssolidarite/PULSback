@@ -44,7 +44,7 @@ class TerminalViewSet(viewsets.ModelViewSet):
         user: User = self.request.user
 
         if user.is_customer_user():
-            return Terminal.objects.filter(is_archived=False, customer=user.customer) # For customer, return all terminals that belong to this customer
+            return Terminal.objects.filter(is_archived=False, customer=user.get_customer()) # For customer, return all terminals that belong to this customer
 
         elif user.is_staff:
             return Terminal.objects.filter(is_archived=False)
@@ -73,7 +73,7 @@ class CampaignsByTerminal(APIView):
         user: User = self.request.user
 
         if user.is_customer_user():
-            return Terminal.objects.filter(is_archived=False, customer=user.customer) # For customer, return all terminals that belong to this customer
+            return Terminal.objects.filter(is_archived=False, customer=user.get_customer()) # For customer, return all terminals that belong to this customer
 
         elif user.is_staff:
             return Terminal.objects.filter(is_archived=False)

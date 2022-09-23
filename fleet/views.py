@@ -58,7 +58,7 @@ class CustomerDetailByUser(APIView):
         user = get_object_or_404(self.user_queryset, pk=user_id)
         self.check_object_permissions(self.request, user)
 
-        customer = user.terminal.customer if user.terminal else user.customer
+        customer = user.get_terminal().customer if user.get_terminal() else None
 
         serializer = CustomerSerializer(customer)
         return Response(serializer.data, status=status.HTTP_200_OK)

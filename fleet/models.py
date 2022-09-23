@@ -28,18 +28,30 @@ class User(AbstractUser):
         Perform some pre save validations
         """
 
-        assert not (self.customer and self.terminal), "User cannot be assigned to a customer and a terminal in the same time. Use different users."
-        assert not (self.is_staff and self.terminal), "Staff member cannot be assigned to a terminal."
-        assert not (self.is_staff and self.customer), "Staff member cannot be assigned to a customer."
-        assert not self.is_staff and not self.terminal and not self.customer, "User should be a staff member, or be assigned to a customer or a terminal. You are trying to create an orhpan user which is not allowed."
+        assert not (self.get_customer() and self.get_terminal()), "User cannot be assigned to a customer and a terminal in the same time. Use different users."
+        assert not (self.is_staff and self.get_terminal()), "Staff member cannot be assigned to a terminal."
+        assert not (self.is_staff and self.get_customer()), "Staff member cannot be assigned to a customer."
+        assert not self.is_staff and not self.get_terminal() and not self.get_customer(), "User should be a staff member, or be assigned to a customer or a terminal. You are trying to create an orhpan user which is not allowed."
 
         super(User, self).save(*args, **kwargs)
 
+    def get_terminal(self):
+        if hasattr(self, 'terminal'):
+            return self.terminal
+
+        return None
+
+    def get_customer(self):
+        if hasattr(self, 'customer'):
+            return self.customer
+
+        return None
+
     def is_terminal_user(self):
-        return self.terminal is not None
+        return self.get_terminal() is not None
 
     def is_customer_user(self):
-        return self.customer is not None
+        return self.get_customer() is not None
 
 
 class Customer(models.Model):
