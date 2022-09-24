@@ -71,7 +71,7 @@ class ScreenSaverBroadcastViewSet(viewsets.ModelViewSet):
 
         if user.is_customer_user():
             # Customer user can access every broadcast to a terminal that belong to themselves
-            return ScreensaverBroadcast.objects.filter(owner=user)
+            return ScreensaverBroadcast.objects.filter(media__owner=user)
 
         else:
             raise PermissionDenied()
