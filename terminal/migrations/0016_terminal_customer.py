@@ -14,13 +14,7 @@ def populate_terminal_customer(apps, schema_editor):
 
 
 def reverse_populate_terminal_customer(apps, schema_editor):
-    """
-    Move customer from terminal terminal.owner
-    """
-    TerminalModel = apps.get_model('terminal', 'Terminal')
-    for terminal_object in TerminalModel.objects.all():
-        terminal_object.owner.customer = terminal_object.customer
-        terminal_object.save()
+    pass
 
 
 class Migration(migrations.Migration):
