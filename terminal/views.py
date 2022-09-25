@@ -11,10 +11,10 @@ from django.http import HttpResponse
 from django.conf import settings
 
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
-from rest_framework import status
+from rest_framework import status, viewsets
 from rest_framework.response import Response
-from rest_framework import viewsets
 from rest_framework.views import APIView
+from rest_framework.decorators import action
 
 from game.models import Game
 
@@ -58,32 +58,54 @@ class TerminalViewSet(viewsets.ModelViewSet):
         serializer = TerminalSemiSerializer(self.get_queryset(), many=True, read_only=True)
         return Response(serializer.data)
 
+    @action(detail=True, methods=['get'])
+    def activate(self, request, pk, format=None):
+        terminal = get_object_or_404(self.get_queryset(), pk=pk)
+        terminal.is_active = True
+        terminal.owner.is_active = True
+        terminal.save()
+        terminal.owner.save()
+        serializer = TerminalSerializer(terminal)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
-class CampaignsByTerminal(APIView):
-    """
-    This view is used from SETH front admin or customer
-    """
+    @action(detail=True, methods=['get'])
+    def deactivate(self, request, pk, format=None):
+        terminal = get_object_or_404(self.get_queryset(), pk=pk)
+        terminal.is_active = False
+        terminal.owner.is_active = False
+        terminal.is_on = False
+        terminal.is_playing = False
+        terminal.save()
+        terminal.owner.save()
+        serializer = TerminalSerializer(terminal)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
-    permission_classes = [IsAuthenticated, IsAdminOrCustomerUser] # Only accessible for admin or customer users
+    @action(detail=True, methods=['get'])
+    def archive(self, request, pk, format=None):
+        terminal = get_object_or_404(self.get_queryset(), pk=pk)
+        terminal = Terminal.objects.get(pk=pk)
+        terminal.is_active = False
+        terminal.owner.is_active = False
+        terminal.is_archived = True
+        terminal.save()
+        terminal.owner.save()
+        serializer = TerminalSerializer(terminal)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def get_queryset(self):
-        user: User = self.request.user
-
-        if user.is_customer_user():
-            return Terminal.objects.filter(is_archived=False, customer=user.get_customer()) # For customer, return all terminals that belong to this customer
-
-        elif user.is_staff:
-            return Terminal.objects.filter(is_archived=False)
-
-        else:
-            raise PermissionDenied()
-
-    def get(self, request, pk, format=None):
+    @action(detail=True, methods=['get'])
+    def campaigns(self, request, pk, format=None):
         terminal = get_object_or_404(self.get_queryset(), pk=pk)
         campaigns = terminal.campains
         serializer = CampaignSerializer(campaigns, many=True, context={"request": request})
         return Response(serializer.data, status=status.HTTP_200_OK)
-        
+
+    @action(detail=True, methods=['get'])
+    def games(self, request, pk, format=None):
+        terminal = get_object_or_404(self.get_queryset(), pk=pk)
+        games = terminal.games
+        games = GameSerializer(games, many=True, context={"request": request})
+        return Response(games.data, status=status.HTTP_200_OK)
+       
 
 
 class DashboardStats(APIView):
@@ -429,19 +451,10 @@ class CSVviewSet(APIView):
             return response
 
 
-class GamesByTerminal(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request, pk, format=None):
-        try:
-            games = Terminal.objects.get(pk=pk).games
-            games = GameSerializer(games, many=True, context={"request": request})
-            return Response(games.data, status=status.HTTP_200_OK)
-        except ObjectDoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
 
 
 class TerminalByOwner(APIView):
+    # TODO protect
     permission_classes = [IsAuthenticated]
 
     def get(self, request, format=None):
@@ -456,6 +469,7 @@ class TerminalByOwner(APIView):
 
 
 class TurnOnTerminal(APIView):
+    # TODO protect
     permission_classes = [IsAuthenticated]
 
     def get(self, request, format=None):
@@ -470,6 +484,7 @@ class TurnOnTerminal(APIView):
 
 
 class TurnOffTerminal(APIView):
+    # TODO protect
     permission_classes = [IsAuthenticated]
 
     def get(self, request, format=None):
@@ -511,56 +526,6 @@ class PlayingOffTerminal(APIView):
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-
-class ActivateTerminal(APIView):
-    permission_classes = [IsAdminUser]
-
-    def get(self, request, pk, format=None):
-        try:
-            terminal = Terminal.objects.get(pk=pk)
-            terminal.is_active = True
-            terminal.owner.is_active = True
-            terminal.save()
-            terminal.owner.save()
-            serializer = TerminalSerializer(terminal)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        except ObjectDoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-
-
-class DeactivateTerminal(APIView):
-    permission_classes = [IsAdminUser]
-
-    def get(self, request, pk, format=None):
-        try:
-            terminal = Terminal.objects.get(pk=pk)
-            terminal.is_active = False
-            terminal.owner.is_active = False
-            terminal.is_on = False
-            terminal.is_playing = False
-            terminal.save()
-            terminal.owner.save()
-            serializer = TerminalSerializer(terminal)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        except ObjectDoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-
-
-class ArchiveTerminal(APIView):
-    permission_classes = [IsAdminUser]
-
-    def get(self, request, pk, format=None):
-        try:
-            terminal = Terminal.objects.get(pk=pk)
-            terminal.is_active = False
-            terminal.owner.is_active = False
-            terminal.is_archived = True
-            terminal.save()
-            terminal.owner.save()
-            serializer = TerminalSerializer(terminal)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        except ObjectDoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
 
 # Donator Model
 class DonatorViewSet(viewsets.ModelViewSet):
