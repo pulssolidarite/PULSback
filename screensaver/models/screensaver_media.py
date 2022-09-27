@@ -32,7 +32,7 @@ class ScreensaverMedia(models.Model):
         """
         Just a little validation
         """
-        assert self.scope == self.PRIVATE_SCOPE or (self.scope == self.PUBLIC_SCOPE and self.owner.is_admin_type()), "Public medias can only be owned by admin user"
+        assert self.scope == self.PRIVATE_SCOPE or (self.scope == self.PUBLIC_SCOPE and self.owner.is_staff), "Public medias can only be owned by admin user"
         
         super(ScreensaverMedia, self).save(*args, **kwargs)    
 

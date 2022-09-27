@@ -12,8 +12,12 @@ class ScreenSaverMediaSerializer(serializers.ModelSerializer):
 
 
     def create(self, validated_data):
-        user: User = self.context['request.user']
+        user: User =  self.context['request'].user
 
         assert user.is_staff or user.is_customer_user()
 
-        return ScreensaverMedia(**validated_data, owner=user)
+        screensaver_media = ScreensaverMedia(**validated_data, owner=user)
+
+        screensaver_media.save()
+
+        return screensaver_media
