@@ -1,2 +1,2 @@
 from .screensaver_media import ScreenSaverMediaSerializer
-from .screensaver_broadcast import ScreenSaverBroadcastSerializer
+from .screensaver_broadcast import ScreenSaverBroadcastWriteSerializer, ScreenSaverBroadcastReadSerializer

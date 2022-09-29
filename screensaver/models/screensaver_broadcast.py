@@ -18,4 +18,4 @@ class ScreensaverBroadcast(models.Model):
         verbose_name_plural = "Diffusions d'écran de veille"
 
     def __str__(self):
-        return f"Diffusion de {self.media} chez {self.customer}"
+        return f"Diffusion de {self.media} chez {self.terminal.customer}"

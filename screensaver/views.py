@@ -1,16 +1,20 @@
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
+from django.shortcuts import get_object_or_404
 
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import permissions
+from rest_framework.decorators import action
+from rest_framework.response import Response
 
 from backend.permissions import IsAdminOrCustomerUser
+from fleet import serializers
 
 from fleet.models import User
 
 from screensaver.models import ScreensaverMedia, ScreensaverBroadcast
-from screensaver.serializers import ScreenSaverMediaSerializer, ScreenSaverBroadcastSerializer
+from screensaver.serializers import ScreenSaverMediaSerializer, ScreenSaverBroadcastReadSerializer, ScreenSaverBroadcastWriteSerializer
 
 
 class ScreenSaverMediaViewSet(viewsets.ModelViewSet):
@@ -22,16 +26,20 @@ class ScreenSaverMediaViewSet(viewsets.ModelViewSet):
 
         def has_object_permission(self, request, view, obj: ScreensaverMedia):
 
-            if request.method == 'GET':
-                return True # Allow anyone to get any screensaver
-
             user: User = request.user
 
             if user.is_customer_user():
-                return obj.owner == user # Allow user to put or patch only if they are the owner of the target screensaver object
+                if request.method == 'GET':
+                    # Allow user to fetch media only if they are the owner or if the media is public
+                    return obj.scope == obj.PUBLIC_SCOPE or obj.owner == user 
+
+                else:
+                    # Allow user to put, post or delete media only if they are the owner
+                    return obj.owner == user 
 
             elif user.is_staff:
-                return True
+                # Allow staff member to fetch, post, put or delete media only if this media belong to a staff member or if this media is public
+                return obj.scope == obj.PUBLIC_SCOPE or obj.owner.is_staff 
 
             else:
                 raise PermissionDenied()
@@ -44,11 +52,11 @@ class ScreenSaverMediaViewSet(viewsets.ModelViewSet):
         user: User = self.request.user
 
         if user.is_staff:
-            # For admin user, we return every medias owned by an admin
-            return ScreensaverMedia.objects.filter(owner__is_staff=True)
+            # Allow staff member to fetch, media only if this media belong to a staff member or if this media is public
+            return ScreensaverMedia.objects.filter(Q(owner__is_staff=True) | Q(scope=ScreensaverMedia.PUBLIC_SCOPE))
 
         elif user.is_customer_user():
-            # For customer user, we return every medias owned by this user and every public medias
+            # Allow user to fetch media only if they are the owner or if the media is public
             return ScreensaverMedia.objects.filter(
                 Q(owner=user) | Q(scope=ScreensaverMedia.PUBLIC_SCOPE)
             )
@@ -58,7 +66,6 @@ class ScreenSaverMediaViewSet(viewsets.ModelViewSet):
 
 
 class ScreenSaverBroadcastViewSet(viewsets.ModelViewSet):
-    serializer_class = ScreenSaverBroadcastSerializer
     queryset = ScreensaverBroadcast.objects.none()
     permission_classes = [IsAuthenticated, IsAdminOrCustomerUser]
 
@@ -75,3 +82,30 @@ class ScreenSaverBroadcastViewSet(viewsets.ModelViewSet):
 
         else:
             raise PermissionDenied()
+
+    def get_serializer_class(self):
+        if self.action in ['list', 'retrieve']:
+            return ScreenSaverBroadcastReadSerializer
+        else:
+            return ScreenSaverBroadcastWriteSerializer
+
+
+    @action(detail=True, methods=['post'])
+    def activate(self, request, pk):
+        broadcast = get_object_or_404(self.get_queryset(), pk=pk)
+
+        broadcast.visible = True
+        broadcast.save()
+
+        serializer = ScreenSaverBroadcastReadSerializer(broadcast)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['post'])
+    def deactivate(self, request, pk):
+        broadcast = get_object_or_404(self.get_queryset(), pk=pk)
+
+        broadcast.visible = False
+        broadcast.save()
+
+        serializer = ScreenSaverBroadcastReadSerializer(broadcast)
+        return Response(serializer.data)

@@ -36,3 +36,6 @@ class ScreensaverMedia(models.Model):
         
         super(ScreensaverMedia, self).save(*args, **kwargs)    
 
+    @property
+    def nb_terminals(self):
+        return self.screensaver_broadcasts.count()

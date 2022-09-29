@@ -14,10 +14,18 @@ class UserSerializer(serializers.ModelSerializer):
 
 class ScreenSaverMediaSerializer(serializers.ModelSerializer):
     owner = UserSerializer(read_only=True)
+    nb_terminals = serializers.ReadOnlyField() # Property on model ScreensaverMedia
 
     class Meta:
         model = ScreensaverMedia
-        fields = "__all__"
+        fields = (
+            "id",
+            "title",
+            "scope",
+            "owner",
+            "youtube_video_id",
+            "nb_terminals",
+        )
 
 
     def create(self, validated_data):
