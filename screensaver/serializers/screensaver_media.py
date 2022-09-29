@@ -3,12 +3,15 @@ from fleet.models import User
 
 from screensaver.models import ScreensaverMedia
 
+from fleet.serializers import UserSerializer
+
 
 class ScreenSaverMediaSerializer(serializers.ModelSerializer):
+    owner = UserSerializer(read_only=True)
 
     class Meta:
         model = ScreensaverMedia
-        fields = ("title", "scope", "youtube_video_id", )
+        fields = ("title", "scope", "youtube_video_id", "owner", )
 
 
     def create(self, validated_data):
