@@ -3,15 +3,21 @@ from fleet.models import User
 
 from screensaver.models import ScreensaverMedia
 
-from fleet.serializers import UserSerializer
+class UserSerializer(serializers.ModelSerializer):
+    """
+    Serialize User but only contact info, no sensitive info
+    """
 
+    class Meta:
+        model = User
+        fields = ('username', 'first_name', 'last_name', 'email',)
 
 class ScreenSaverMediaSerializer(serializers.ModelSerializer):
     owner = UserSerializer(read_only=True)
 
     class Meta:
         model = ScreensaverMedia
-        fields = ("title", "scope", "youtube_video_id", "owner", )
+        fields = "__all__"
 
 
     def create(self, validated_data):
