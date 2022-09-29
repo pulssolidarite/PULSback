@@ -212,7 +212,7 @@ class PaymentFiltered(APIView):
         terminal_id = self.request.query_params.get('terminal_id')
         client_id = self.request.query_params.get('client_id')
         donation_formula = self.request.query_params.get('donation_formula')
-        status = self.request.query_params.get('status')
+        payment_status = self.request.query_params.get('status')
         game_id = self.request.query_params.get('game_id')
         date = self.request.query_params.get('date')
         date_start = self.request.query_params.get('date_start')
@@ -262,10 +262,10 @@ class PaymentFiltered(APIView):
         if game_id and campaign_id not in ["all", "", " "]:
             payments = payments.filter(game_id=game_id)
 
-        # Filter by status
+        # Filter by payment_status
 
-        if status and status not in ["all", "", " "]:
-            payments = payments.filter(status=status)
+        if payment_status and payment_status not in ["all", "", " "]:
+            payments = payments.filter(status=payment_status)
 
         # Filter by donation_formula
 
@@ -401,8 +401,8 @@ class PaymentFiltered(APIView):
 
         # Count amount
 
-        amountSum = not_skiped_payment_count.aggregate(Sum('amount'))['amount__sum']
-        amountAvg =  not_skiped_payment_count.aggregate(Avg('amount'))['amount__avg']
+        amountSum = not_skiped_payments.aggregate(Sum('amount'))['amount__sum']
+        amountAvg = not_skiped_payments.aggregate(Avg('amount'))['amount__avg']
 
         if (amountAvg ): amountAvg = round(amountAvg,2)
         if (amountSum is None ): amountSum = 0
