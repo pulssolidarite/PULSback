@@ -1,5 +1,9 @@
 import datetime
 from rest_framework import serializers
+from screensaver.models.screensaver_broadcast import ScreensaverBroadcast
+
+from screensaver.models.screensaver_media import ScreensaverMedia
+from screensaver.serializers.screensaver_broadcast import ScreenSaverBroadcastSerializer
 from .models import Terminal, Donator, Session, Payment
 from game.models import Game, Core, GameFile, CoreFile
 from fleet.models import Campaign
@@ -37,6 +41,10 @@ class TerminalSerializer(serializers.ModelSerializer):
     # owner = UserSerializer(many=False, read_only=True)
     payment_terminal = serializers.CharField(allow_null=True)
     donation_formula = serializers.CharField()
+    screensaver_broadcasts = ScreenSaverBroadcastSerializer(
+        many=True,
+        read_only=True,
+    )
 
     class Meta:
         model = Terminal

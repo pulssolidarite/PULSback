@@ -14,7 +14,7 @@ from fleet import serializers
 from fleet.models import User
 
 from screensaver.models import ScreensaverMedia, ScreensaverBroadcast
-from screensaver.serializers import ScreenSaverMediaSerializer, ScreenSaverBroadcastReadSerializer, ScreenSaverBroadcastWriteSerializer
+from screensaver.serializers import ScreenSaverMediaSerializer, ScreenSaverBroadcastSerializer
 
 
 class ScreenSaverMediaViewSet(viewsets.ModelViewSet):
@@ -68,6 +68,7 @@ class ScreenSaverMediaViewSet(viewsets.ModelViewSet):
 class ScreenSaverBroadcastViewSet(viewsets.ModelViewSet):
     queryset = ScreensaverBroadcast.objects.none()
     permission_classes = [IsAuthenticated, IsAdminOrCustomerUser]
+    serializer_class = ScreenSaverBroadcastSerializer
 
     def get_queryset(self):
         user: User = self.request.user
@@ -83,12 +84,6 @@ class ScreenSaverBroadcastViewSet(viewsets.ModelViewSet):
         else:
             raise PermissionDenied()
 
-    def get_serializer_class(self):
-        if self.action in ['list', 'retrieve']:
-            return ScreenSaverBroadcastReadSerializer
-        else:
-            return ScreenSaverBroadcastWriteSerializer
-
 
     @action(detail=True, methods=['post'])
     def activate(self, request, pk):
@@ -97,7 +92,7 @@ class ScreenSaverBroadcastViewSet(viewsets.ModelViewSet):
         broadcast.visible = True
         broadcast.save()
 
-        serializer = ScreenSaverBroadcastReadSerializer(broadcast)
+        serializer = ScreenSaverBroadcastSerializer(broadcast)
         return Response(serializer.data)
 
     @action(detail=True, methods=['post'])
@@ -107,5 +102,5 @@ class ScreenSaverBroadcastViewSet(viewsets.ModelViewSet):
         broadcast.visible = False
         broadcast.save()
 
-        serializer = ScreenSaverBroadcastReadSerializer(broadcast)
+        serializer = ScreenSaverBroadcastSerializer(broadcast)
         return Response(serializer.data)

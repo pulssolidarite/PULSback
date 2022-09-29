@@ -5,38 +5,49 @@ from terminal.models import Terminal
 
 
 
-class TerminalSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Terminal
-        fields = ('id', 'name',)
-
-class MediaSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ScreensaverMedia
-        fields = ('id', 'title',)
-
-class ScreenSaverBroadcastReadSerializer(serializers.ModelSerializer):
+class ScreenSaverBroadcastSerializer(serializers.ModelSerializer):
     """
-    This serializer is to be used for serialize broadcast, including terminal and media info.
-    """
-    terminal = TerminalSerializer(read_only=True)
-    media = MediaSerializer(read_only=True)
+    Serializer for broadcast
 
-    class Meta:
-        model = ScreensaverBroadcast
-        fields = '__all__'
+    Will serialize like :
+        {
+            visible: True,
+            terminal: {
+                id: 0,
+                name: 'Nom du terminal',
+            },
+            media: {
+                id: 0,
+                title: 'Titre du media',
+                youtube_video_id: 'ABCDEF',
+            },
+        }
 
-
-class ScreenSaverBroadcastWriteSerializer(serializers.ModelSerializer):
-    """
-    This serializer is to be used for deserialize broadcast.
-    To assign terminal or media, include :
-    {
-        terminal: pk of the terminal,
-        media : pk of the media,
-    }
+    But will deserialize data like :
+        {
+            visible: True,
+            terminal_id: 0, // pk of the terminal to assign to this broadcast
+            media_id: 0, // pk of the media to assign to this broadcast
+        }
+    
     """
 
+    class _TerminalSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = Terminal
+            fields = ('id', 'name',)
+
+    class _MediaSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = ScreensaverMedia
+            fields = ('id', 'title', 'youtube_video_id',)
+
+    terminal = _TerminalSerializer(read_only=True)
+    terminal_id = serializers.PrimaryKeyRelatedField(source="terminal", queryset=Terminal.objects.all(), write_only=True)
+    
+    media = _MediaSerializer(read_only=True)
+    media_id = serializers.PrimaryKeyRelatedField(source="media", queryset=ScreensaverMedia.objects.all(), write_only=True)
+    
     class Meta:
         model = ScreensaverBroadcast
         fields = '__all__'

@@ -460,10 +460,18 @@ class TerminalByOwner(APIView):
     def get(self, request, format=None):
         try:
             terminal = Terminal.objects.get(owner=request.user.id)
-            serializer = TerminalSerializer(terminal)
-            campaigns = CampaignSerializer(terminal.campaigns, many=True, context={"request": request})
-            games = GameSerializer(terminal.games, many=True, context={"request": request})
-            return Response({'terminal': serializer.data, 'campaigns': campaigns.data, 'games': games.data}, status=status.HTTP_200_OK)
+            terminal_serializer = TerminalSerializer(terminal)
+            campaigns_serializer = CampaignSerializer(terminal.campaigns, many=True, context={"request": request})
+            games_serializer = GameSerializer(terminal.games, many=True, context={"request": request})
+            return Response(
+                {
+                    'terminal': terminal_serializer.data,
+                    'campaigns': campaigns_serializer.data,
+                    'games': games_serializer.data,
+                },
+                status=status.HTTP_200_OK,
+            )
+
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
