@@ -432,8 +432,10 @@ class PaymentFilteredViewSet(viewsets.ViewSet):
 
         not_skiped_payments = payments.exclude(status="Skiped")
 
-        amountSum = not_skiped_payments.aggregate(Sum('amount'))['amount__sum']
-        amountAvg = not_skiped_payments.aggregate(Avg('amount'))['amount__avg']
+        payments_total_amount_excluding_skiped = not_skiped_payments.aggregate(Sum('amount'))['amount__sum']
+        payments_average_amount_excluding_skiped = not_skiped_payments.aggregate(Avg('amount'))['amount__avg']
+        amount_donated = not_skiped_payments.aggregate(Sum('amount_donated'))['amount__sum']
+        amount_for_owner = payments_total_amount_excluding_skiped - amount_donated
 
         if (amountAvg ): amountAvg = round(amountAvg,2)
         if (amountSum is None ): amountSum = 0
