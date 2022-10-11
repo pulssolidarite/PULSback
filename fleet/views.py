@@ -121,11 +121,19 @@ class CampaignViewSet(viewsets.ModelViewSet):
         campaign.save()
         return Response(status=status.HTTP_200_OK)
 
-    @action(detail=False, methods=['get'])
-    def featured(self, request):
-        campaign = Campaign.objects.filter(featured=True).first()
-        serializer = CampaignSerializer(campaign)
-        return Response(serializer.data)
+    @action(detail=True, methods=['post'])
+    def featured(self, request, pk, format=None):
+        campaign = get_object_or_404(self.get_queryset(), pk=pk)
+        campaign.featured = True
+        campaign.save()
+        return Response(status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['get'])
+    def not_featured(self, request, pk, format=None):
+        campaign = get_object_or_404(self.get_queryset(), pk=pk)
+        campaign.featured = False
+        campaign.save()
+        return Response(status=status.HTTP_200_OK)
 
 class StatsByCampaign(APIView):
     permission_classes = [IsAuthenticated]

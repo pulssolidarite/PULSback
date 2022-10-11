@@ -28,7 +28,7 @@ class GameViewSet(viewsets.ModelViewSet):
         return GameLightSerializer
 
     def list(self, request, *args, **kwargs):
-        serializer = self.get_serializer(self.get_queryset().filter(is_archived=False).order_by("name"), many=True, read_only=True)
+        serializer = self.get_serializer(self.get_queryset().filter(is_archived=False).order_by("name").order_by("featured"), many=True, read_only=True)
         return Response(serializer.data)
 
     # Create
