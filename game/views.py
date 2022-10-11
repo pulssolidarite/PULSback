@@ -1,5 +1,7 @@
 from rest_framework.generics import *
 from rest_framework.views import APIView
+from rest_framework.decorators import action
+
 from .models import *
 from .serializers import *
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
@@ -12,9 +14,9 @@ from .forms import *
 from fleet.models import User
 from backend.permissions import IsAdminOrCustomerUser
 
-# Game Model
-class GameListView(ListAPIView):
-    queryset = Game.objects.filter(is_archived=False)
+
+class GameViewSet(viewsets.ModelViewSet):
+    queryset = Game.objects.all()
     permission_classes = [IsAuthenticated, IsAdminOrCustomerUser]
 
     def get_serializer_class(self):
@@ -25,55 +27,52 @@ class GameListView(ListAPIView):
         
         return GameLightSerializer
 
+    def list(self, request, *args, **kwargs):
+        serializer = self.get_serializer(self.get_queryset().filter(is_archived=False).order_by("name"), many=True, read_only=True)
+        return Response(serializer.data)
 
-class GameCreateView(CreateAPIView):
-    serializer_class = GameLightSerializer
-    queryset = Game.objects.filter(is_archived=False)
-    permission_classes = [IsAuthenticated, IsAdminUser] # Only admin can create new Game
+    # Create
 
-class GameRetrieveDestroyView(RetrieveDestroyAPIView):
-    serializer_class = GameSerializer
-    queryset = Game.objects.filter(is_archived=False)
-    permission_classes = [IsAuthenticated, IsAdminUser] # Only admin can retrieve or destroy a game
+    # Retrieve
 
-    def retrieve(self, request, *args, **kwargs):
-        instance = get_object_or_404(Game, pk=kwargs['pk'])
-        serializer = self.get_serializer(instance)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    # Update
 
     def destroy(self, request, pk=None):
-        game = get_object_or_404(Game, pk=pk)
+        game = get_object_or_404(self.get_queryset(), pk=pk)
         game.is_archived = True
         game.terminals.clear()
         game.save()
         return Response(status=status.HTTP_200_OK)
 
-class GameUpdateView(UpdateAPIView):
-    serializer_class = GameLightSerializer
-    queryset = Game.objects.filter(is_archived=False)
-    permission_classes = [IsAuthenticated, IsAdminUser] # Only admin can update a game
+    @action(detail=False, methods=['post'])
+    def upload(self, request):
+        if not request.FILES['file']:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
-class GameFileUploadView(APIView):
-    parser_classes = (MultiPartParser,)
-    permission_classes = [IsAuthenticated, IsAdminUser] # Only admin
+        form = GameFileForm(request.POST, request.FILES)
+        if form.is_valid():
+            file = form.save()
+            return Response(GameFileSerializer(file).data, status=status.HTTP_201_CREATED)
+        else:
+            print(form.errors)
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
-    def post(self, request, format=None):
-        if request.FILES['file']:
-            form = GameFileForm(request.POST, request.FILES)
-            if form.is_valid():
-                file = form.save()
-                return Response(GameFileSerializer(file).data, status=status.HTTP_201_CREATED)
-            else:
-                print(form.errors)
-                return Response(status=status.HTTP_400_BAD_REQUEST)
+    @action(detail=True, methods=['post'])
+    def featured(self, request, pk, format=None):
+        game = get_object_or_404(self.get_queryset(), pk=pk)
+        game.featured = True
+        game.save()
+        return Response(status=status.HTTP_200_OK)
 
-class FeaturedGameView(APIView):
-    permission_classes = [IsAuthenticated] # Anyone can fetch featured game, admin, customer or terminal
+    @action(detail=True, methods=['get'])
+    def not_featured(self, request, pk, format=None):
+        game = get_object_or_404(self.get_queryset(), pk=pk)
+        game.featured = False
+        game.save()
+        return Response(status=status.HTTP_200_OK)
 
-    def get(self, request):
-        game = Game.objects.filter(featured=True).first()
-        serializer = GameLightSerializer(game)
-        return Response(serializer.data)
+
+
 
 # Core Model
 class CoreListView(ListAPIView):

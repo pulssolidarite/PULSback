@@ -73,13 +73,6 @@ class LightTerminalSerializer(serializers.ModelSerializer):
         read_only=True,
         source="visible_screensaver_broadcasts",
     )
-
-    #screensaver_broadcasts = serializers.SerializerMethodField()
-
-    #def get_screensaver_broadcasts(self, instance):
-    #    visible_screensaver_broadcasts = instance.screensaver_broadcasts.filter(visible=True)
-    #    return ScreenSaverBroadcastSerializer(visible_screensaver_broadcasts, many=True)
-
     class Meta:
         model = Terminal
         fields = '__all__'

@@ -24,6 +24,7 @@ from rest_framework.routers import DefaultRouter
 from fleet.views import *
 from terminal.views import *
 from screensaver.views import *
+from game.views import GameViewSet
 
 
 
@@ -32,6 +33,7 @@ router.register(r'customer', CustomerViewSet)
 router.register(r'campaign', CampaignViewSet)
 router.register(r'terminal', TerminalViewSet)
 router.register(r'donator', DonatorViewSet)
+router.register(r'games', GameViewSet)
 router.register(r'session', SessionViewSet)
 router.register(r'payment', PaymentViewSet)
 router.register(r'screensaver-medias', ScreenSaverMediaViewSet)
