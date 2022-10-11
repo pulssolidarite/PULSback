@@ -2,7 +2,7 @@ from .models import Customer, Campaign, User, DonationStep
 from django.conf import settings
 from terminal.views import Terminal, Payment
 from terminal.serializers import PaymentFullSerializer
-from .serializers import CustomerSerializer, CampaignSerializer, UserSerializer, CampaignFullSerializer, DonationStepSerializer
+from .serializers import CustomerSerializer, CampaignSerializer, UserSerializer, CampaignFullSerializer, DonationStepSerializer, UserFullSerializer
 from rest_framework import generics
 from rest_framework import viewsets
 from rest_framework.decorators import action
@@ -25,7 +25,7 @@ class UserSelf(APIView):
         try:
             print(request.user)
             user = request.user
-            serializer = UserSerializer(user)
+            serializer = UserFullSerializer(user)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
