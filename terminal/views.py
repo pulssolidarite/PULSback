@@ -10,7 +10,7 @@ from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
 from django.conf import settings
 
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.permissions import IsAuthenticated
 from rest_framework import status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -35,7 +35,7 @@ class TerminalViewSet(viewsets.ModelViewSet):
 
     queryset = Terminal.objects.filter(is_archived=False)
     permission_classes = [IsAuthenticated, IsAdminOrCustomerUser, NormalUserListRetrieveOnly]
-    serializer_class = TerminalSerializer
+    serializer_class = FullTerminalSerializer
 
     def get_queryset(self):
         user: User = self.request.user
@@ -65,7 +65,7 @@ class TerminalViewSet(viewsets.ModelViewSet):
         terminal.owner.is_active = True
         terminal.save()
         terminal.owner.save()
-        serializer = TerminalSerializer(terminal)
+        serializer = FullTerminalSerializer(terminal)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['get'])
@@ -77,7 +77,7 @@ class TerminalViewSet(viewsets.ModelViewSet):
         terminal.is_playing = False
         terminal.save()
         terminal.owner.save()
-        serializer = TerminalSerializer(terminal)
+        serializer = FullTerminalSerializer(terminal)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['get'])
@@ -89,7 +89,7 @@ class TerminalViewSet(viewsets.ModelViewSet):
         terminal.is_archived = True
         terminal.save()
         terminal.owner.save()
-        serializer = TerminalSerializer(terminal)
+        serializer = FullTerminalSerializer(terminal)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['get'])
@@ -460,9 +460,9 @@ class TerminalByOwner(APIView):
     def get(self, request, format=None):
         try:
             terminal = Terminal.objects.get(owner=request.user.id)
-            terminal_serializer = TerminalSerializer(terminal)
-            campaigns_serializer = CampaignSerializer(terminal.campaigns, many=True, context={"request": request})
-            games_serializer = GameSerializer(terminal.games, many=True, context={"request": request})
+            terminal_serializer = LightTerminalSerializer(terminal)
+            campaigns_serializer = CampaignSerializer(terminal.campaigns.order_by("featured"), many=True, context={"request": request})
+            games_serializer = GameSerializer(terminal.games.order_by("featured"), many=True, context={"request": request})
             return Response(
                 {
                     'terminal': terminal_serializer.data,
@@ -485,7 +485,7 @@ class TurnOnTerminal(APIView):
             terminal = Terminal.objects.get(owner=request.user.id)
             terminal.is_on = True
             terminal.save()
-            serializer = TerminalSerializer(terminal)
+            serializer = LightTerminalSerializer(terminal)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
@@ -501,7 +501,7 @@ class TurnOffTerminal(APIView):
             terminal.is_on = False
             terminal.is_playing = False
             terminal.save()
-            serializer = TerminalSerializer(terminal)
+            serializer = LightTerminalSerializer(terminal)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
@@ -515,7 +515,7 @@ class PlayingOnTerminal(APIView):
             terminal = Terminal.objects.get(owner=request.user.id)
             terminal.is_playing = True
             terminal.save()
-            serializer = TerminalSerializer(terminal)
+            serializer = LightTerminalSerializer(terminal)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
@@ -529,7 +529,7 @@ class PlayingOffTerminal(APIView):
             terminal = Terminal.objects.get(owner=request.user.id)
             terminal.is_playing = False
             terminal.save()
-            serializer = TerminalSerializer(terminal)
+            serializer = LightTerminalSerializer(terminal)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
@@ -583,7 +583,7 @@ class PaymentViewSet(viewsets.ModelViewSet):
 
     def paymentLog(self, paymentSerializer):
         # file : ${settings.LOG_PATH}/${terminalName}/${%Y-%m}-payments.log
-        terminalName = TerminalSerializer(Terminal.objects.get(pk=paymentSerializer.data.get("terminal"))).data.get("name")
+        terminalName = LightTerminalSerializer(Terminal.objects.get(pk=paymentSerializer.data.get("terminal"))).data.get("name")
         filePath = os.path.join(settings.LOG_PATH, terminalName)
         if not os.path.exists(filePath):
             os.makedirs(filePath)
@@ -597,7 +597,7 @@ class PaymentViewSet(viewsets.ModelViewSet):
     def paymentLogException(self, exception, paymentSerializer, request):
         if paymentSerializer.data.get("terminal") :
             # file : ${settings.LOG_PATH}/${terminalName}/${%Y-%m}-payments.log
-            terminalName = TerminalSerializer(Terminal.objects.get(pk=paymentSerializer.data.get("terminal"))).data.get("name")
+            terminalName = LightTerminalSerializer(Terminal.objects.get(pk=paymentSerializer.data.get("terminal"))).data.get("name")
             filePath = os.path.join(settings.LOG_PATH, terminalName)
             if not os.path.exists(filePath):
                 os.makedirs(filePath)

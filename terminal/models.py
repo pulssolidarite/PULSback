@@ -23,6 +23,9 @@ class Terminal(models.Model):
     payment_terminal = models.CharField(max_length=250, null=True, blank=True)
     donation_formula = models.CharField(max_length=250, null=True)
 
+    @property
+    def visible_screensaver_broadcasts(self):
+        return self.screensaver_broadcasts.filter(visible=True)
 
     @property
     def subscription_type(self):
