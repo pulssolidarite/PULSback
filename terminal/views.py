@@ -461,8 +461,8 @@ class TerminalByOwner(APIView):
         try:
             terminal = Terminal.objects.get(owner=request.user.id)
             terminal_serializer = LightTerminalSerializer(terminal)
-            campaigns_serializer = CampaignSerializer(terminal.campaigns.order_by("featured"), many=True, context={"request": request})
-            games_serializer = GameSerializer(terminal.games.order_by("featured"), many=True, context={"request": request})
+            campaigns_serializer = CampaignSerializer(terminal.campaigns.order_by("-featured", "name"), many=True, context={"request": request})
+            games_serializer = GameSerializer(terminal.games.order_by("-featured", "name"), many=True, context={"request": request})
             return Response(
                 {
                     'terminal': terminal_serializer.data,

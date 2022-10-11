@@ -101,21 +101,24 @@ class DeactivateCustomer(APIView):
 
 class CampaignViewSet(viewsets.ModelViewSet):
     serializer_class = CampaignFullSerializer
-    queryset = Campaign.objects.filter(is_archived=False)
+    queryset = Campaign.objects.all()
     permission_classes = [IsAuthenticated, NormalUserListRetrieveOnly]
 
+    def list(self, request, *args, **kwargs):
+        serializer = self.get_serializer(self.get_queryset().order_by("-featured", "name"), many=True, read_only=True)
+        return Response(serializer.data)
+
     def retrieve(self, request, *args, **kwargs):
-        instance = get_object_or_404(Campaign, pk=kwargs['pk'])
+        instance = get_object_or_404(self.get_queryset().filter(is_archived=False), pk=kwargs['pk'])
         serializer = self.get_serializer(instance)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def get(self, request, *args, **kwargs): # TODO get is never called in ModelViewSet, should be list() ?
-        queryset = Campaign.objects.filter(is_archived=False)
-        serializer = CampaignSerializer(queryset, context={"request": request})
+        serializer = CampaignSerializer(self.get_queryset(), context={"request": request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def destroy(self, request, pk=None):
-        campaign = get_object_or_404(Campaign, pk=pk)
+        campaign = get_object_or_404(self.get_queryset(), pk=pk)
         campaign.is_archived = True
         campaign.terminals.clear()
         campaign.save()
