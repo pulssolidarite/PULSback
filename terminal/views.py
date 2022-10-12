@@ -131,13 +131,34 @@ class DashboardStats(APIView):
         if user.is_customer_user():
             terminals = Terminal.objects.filter(is_on=True, customer=user.get_customer())
             terminals = TerminalSemiSerializer(terminals, many=True, context={"request": request})
+
             collected = Payment.objects.filter(terminal__customer=user.get_customer(), date__month=datetime.datetime.now().month, date__year=datetime.datetime.now().year).aggregate(Sum('amount'))['amount__sum']
             collected_last = Payment.objects.filter(terminal__customer=user.get_customer(), date__month=datetime.datetime.now().month - 1, date__year=datetime.datetime.now().year).aggregate(Sum('amount'))['amount__sum']
+            
+            donated = Payment.objects.filter(terminal__customer=user.get_customer(), date__month=datetime.datetime.now().month, date__year=datetime.datetime.now().year).aggregate(Sum('amount_donated'))['amount__sum']
+            donated_last = Payment.objects.filter(terminal__customer=user.get_customer(), date__month=datetime.datetime.now().month - 1, date__year=datetime.datetime.now().year).aggregate(Sum('amount_donated'))['amount__sum']
+            
             nb_donators = Session.objects.filter(terminal__customer=user.get_customer(), start_time__month=datetime.datetime.now().month, start_time__year=datetime.datetime.now().year).count()
             nb_donators_last = Session.objects.filter(terminal__customer=user.get_customer(), start_time__month=datetime.datetime.now().month - 1, start_time__year=datetime.datetime.now().year).count()
+
             nb_terminals = Terminal.objects.filter(customer=user.get_customer()).count()
+            
             total_gamesession = Session.objects.filter(terminal__customer=user.get_customer()).aggregate(Sum('timesession'))['timesession__sum']
-            return Response({'terminals': terminals.data, 'campaigns': campaigns_serlializer.data, 'collected': collected, 'nb_donators': nb_donators, 'nb_terminals': nb_terminals, 'total_gamesession': total_gamesession, 'collected_last': collected_last, 'nb_donators_last': nb_donators_last}, status=status.HTTP_200_OK)
+           
+            return Response(
+                {
+                    'terminals': terminals.data,
+                    'campaigns': campaigns_serlializer.data,
+                    'collected': collected,
+                    'collected_last': collected_last,
+                    'donated': donated,
+                    'donated_last': donated_last,
+                    'nb_donators': nb_donators,
+                    'nb_terminals': nb_terminals,
+                    'total_gamesession': total_gamesession,
+                    'nb_donators_last': nb_donators_last
+                }, status=status.HTTP_200_OK
+            )
 
         elif user.is_staff:
             terminals = Terminal.objects.filter(is_on=True)
@@ -145,11 +166,31 @@ class DashboardStats(APIView):
 
             collected = Payment.objects.filter(date__month=datetime.datetime.now().month, date__year=datetime.datetime.now().year).aggregate(Sum('amount'))['amount__sum']
             collected_last = Payment.objects.filter(date__month=datetime.datetime.now().month - 1, date__year=datetime.datetime.now().year).aggregate(Sum('amount'))['amount__sum']
+
+            donated = Payment.objects.filter(terminal__customer=user.get_customer(), date__month=datetime.datetime.now().month, date__year=datetime.datetime.now().year).aggregate(Sum('amount_donated'))['amount__sum']
+            donated_last = Payment.objects.filter(terminal__customer=user.get_customer(), date__month=datetime.datetime.now().month - 1, date__year=datetime.datetime.now().year).aggregate(Sum('amount_donated'))['amount__sum']
+
             nb_donators = Session.objects.filter(start_time__month=datetime.datetime.now().month, start_time__year=datetime.datetime.now().year).count()
             nb_donators_last = Session.objects.filter(start_time__month=datetime.datetime.now().month - 1, start_time__year=datetime.datetime.now().year).count()
+
             nb_terminals = Terminal.objects.all().count()
+
             total_gamesession = Session.objects.all().aggregate(Sum('timesession'))['timesession__sum']
-            return Response({'terminals': terminals.data, 'campaigns': campaigns_serlializer.data, 'collected': collected, 'nb_donators': nb_donators, 'nb_terminals': nb_terminals, 'total_gamesession': total_gamesession, 'collected_last': collected_last, 'nb_donators_last': nb_donators_last}, status=status.HTTP_200_OK)
+
+            return Response(
+                {
+                    'terminals': terminals.data,
+                    'campaigns': campaigns_serlializer.data,
+                    'collected': collected,
+                    'collected_last': collected_last,
+                    'donated': donated,
+                    'donated_last': donated_last,
+                    'nb_donators': nb_donators,
+                    'nb_terminals': nb_terminals,
+                    'total_gamesession': total_gamesession,
+                    'nb_donators_last': nb_donators_last,
+                }, status=status.HTTP_200_OK
+            )
 
         else:
             raise PermissionDenied()
