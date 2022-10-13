@@ -7,7 +7,7 @@ from rest_framework import generics
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
-from backend.permissions import IsSuperStaff, NormalUserListRetrieveOnly, NormalUserIsCurrentUser
+from backend.permissions import NormalUserIsCurrentUser, IsAdminOrCustomerUser
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from django.shortcuts import get_object_or_404
@@ -102,7 +102,13 @@ class DeactivateCustomer(APIView):
 class CampaignViewSet(viewsets.ModelViewSet):
     serializer_class = CampaignFullSerializer
     queryset = Campaign.objects.all()
-    permission_classes = [IsAuthenticated, NormalUserListRetrieveOnly]
+
+    def get_permissions(self):
+        if self.action in ["list", "retrieve" "featured", "not_featured"]:
+            permission_classes = [IsAuthenticated, IsAdminOrCustomerUser]
+        else:
+            permission_classes = [IsAuthenticated, IsAdminUser]
+        return [permission() for permission in permission_classes]
 
     def list(self, request, *args, **kwargs):
         serializer = self.get_serializer(self.get_queryset().order_by("-featured", "name"), many=True, read_only=True)
@@ -111,10 +117,6 @@ class CampaignViewSet(viewsets.ModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         instance = get_object_or_404(self.get_queryset().filter(is_archived=False), pk=kwargs['pk'])
         serializer = self.get_serializer(instance)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    def get(self, request, *args, **kwargs): # TODO get is never called in ModelViewSet, should be list() ?
-        serializer = CampaignSerializer(self.get_queryset(), context={"request": request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def destroy(self, request, pk=None):
@@ -126,16 +128,35 @@ class CampaignViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def featured(self, request, pk, format=None):
+        user: User = request.user
         campaign = get_object_or_404(self.get_queryset(), pk=pk)
-        campaign.featured = True
-        campaign.save()
+
+        if user.is_staff:
+            campaign.featured = True
+            campaign.save()
+
+        else:
+            customer = user.get_customer()
+            customer.featured_campaign = campaign
+            customer.save()
+
         return Response(status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=['get'])
+    @action(detail=True, methods=['post'])
     def not_featured(self, request, pk, format=None):
+        user: User = request.user
         campaign = get_object_or_404(self.get_queryset(), pk=pk)
-        campaign.featured = False
-        campaign.save()
+
+        if user.is_staff:
+            campaign.featured = False
+            campaign.save()
+
+        else:
+            customer = user.get_customer()
+            if customer.featured_campaign == campaign:
+                customer.featured_campaign = None
+                customer.save()
+
         return Response(status=status.HTTP_200_OK)
 
 class StatsByCampaign(APIView):

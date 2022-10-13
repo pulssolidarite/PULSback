@@ -17,7 +17,6 @@ from backend.permissions import IsAdminOrCustomerUser
 
 class GameViewSet(viewsets.ModelViewSet):
     queryset = Game.objects.all()
-    permission_classes = [IsAuthenticated, IsAdminOrCustomerUser]
 
     def get_serializer_class(self):
         user: User = self.request.user
@@ -27,15 +26,16 @@ class GameViewSet(viewsets.ModelViewSet):
         
         return GameLightSerializer
 
+    def get_permissions(self):
+        if self.action in ["list", "retrieve" "featured", "not_featured"]:
+            permission_classes = [IsAuthenticated, IsAdminOrCustomerUser]
+        else:
+            permission_classes = [IsAuthenticated, IsAdminUser]
+        return [permission() for permission in permission_classes]
+
     def list(self, request, *args, **kwargs):
         serializer = self.get_serializer(self.get_queryset().filter(is_archived=False).order_by("-featured", "name"), many=True, read_only=True)
         return Response(serializer.data)
-
-    # Create
-
-    # Retrieve
-
-    # Update
 
     def destroy(self, request, pk=None):
         game = get_object_or_404(self.get_queryset(), pk=pk)
@@ -59,16 +59,35 @@ class GameViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def featured(self, request, pk, format=None):
+        user: User = request.user
         game = get_object_or_404(self.get_queryset(), pk=pk)
-        game.featured = True
-        game.save()
+
+        if user.is_staff:
+            game.featured = True
+            game.save()
+
+        else:
+            customer = user.get_customer()
+            customer.featured_game = game
+            customer.save()
+
         return Response(status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=['get'])
+    @action(detail=True, methods=['post'])
     def not_featured(self, request, pk, format=None):
+        user: User = request.user
         game = get_object_or_404(self.get_queryset(), pk=pk)
-        game.featured = False
-        game.save()
+
+        if user.is_staff:
+            game.featured = False
+            game.save()
+
+        else:
+            customer = user.get_customer()
+            if customer.featured_game == game:
+                customer.featured_game = None
+                customer.save()
+
         return Response(status=status.HTTP_200_OK)
 
 

@@ -1,9 +1,10 @@
+import datetime
+
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-from django.db.models import Avg, Sum
 from django.conf import settings
 
-import datetime
+from game.models import Game
 
 
 class User(AbstractUser):
@@ -52,27 +53,6 @@ class User(AbstractUser):
         return self.get_customer() is not None
 
 
-class Customer(models.Model):
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="customer", null=True) # TODO assign user to every customers then set this field to null=False
-
-    company = models.CharField(max_length=255)
-    representative = models.CharField(max_length=255, null=True)
-    logo = models.FileField(blank=True, null=True, upload_to="customers/logos/")
-    sales_type = models.CharField(max_length=1, default="A", null=True)
-    is_active = models.BooleanField(default=True)
-    is_archived = models.BooleanField(default=False)
-
-    can_edit_featured_content = models.BooleanField(default=False)
-    can_edit_donation_formula = models.BooleanField(default=False)
-    can_edit_screensaver_broadcasts = models.BooleanField(default=False)
-    can_see_donators = models.BooleanField(default=False)
-
-    def __str__(self):
-        return self.company or ""
-
-
-
-
 class Campaign(models.Model):
     author = models.ForeignKey(User, on_delete=models.PROTECT, null=True, related_name="campaigns")
     name = models.CharField(max_length=255)
@@ -108,15 +88,15 @@ class Campaign(models.Model):
 
     @property
     def avg_donation(self):
-        return self.payments.filter(campaign=self.pk, status="Accepted").aggregate(Avg('amount'))['amount__avg']
+        return self.payments.filter(campaign=self.pk, status="Accepted").aggregate(models.Avg('amount'))['amount__avg']
 
     @property
     def total_today(self):
-        return self.payments.filter(campaign=self.pk, status="Accepted", date=datetime.datetime.today()).aggregate(Sum('amount'))['amount__sum']
+        return self.payments.filter(campaign=self.pk, status="Accepted", date=datetime.datetime.today()).aggregate(models.Sum('amount'))['amount__sum']
 
     @property
     def total_ever(self):
-        return self.payments.filter(campaign=self.pk, status="Accepted").aggregate(Sum('amount'))['amount__sum']
+        return self.payments.filter(campaign=self.pk, status="Accepted").aggregate(models.Sum('amount'))['amount__sum']
 
     @property
     def last_donations(self):
@@ -136,3 +116,31 @@ class DonationStep(models.Model):
 
     class Meta:
         ordering = ['amount']
+
+
+class Customer(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="customer", null=True) # TODO assign user to every customers then set this field to null=False
+
+    company = models.CharField(max_length=255)
+    representative = models.CharField(max_length=255, null=True)
+    logo = models.FileField(blank=True, null=True, upload_to="customers/logos/")
+    sales_type = models.CharField(max_length=1, default="A", null=True)
+    is_active = models.BooleanField(default=True)
+    is_archived = models.BooleanField(default=False)
+
+    can_edit_featured_content = models.BooleanField(default=False)
+    can_edit_donation_formula = models.BooleanField(default=False)
+    can_edit_screensaver_broadcasts = models.BooleanField(default=False)
+    can_see_donators = models.BooleanField(default=False)
+    can_edit_donation_amount = models.BooleanField(default=False)
+
+    # The customer can select its own featured campaign for its own terminals
+    # This selected campaign will overwrite the campaign that is selected as featured for everyone
+    featured_campaign = models.ForeignKey(Campaign, on_delete=models.SET_NULL, null=True)
+
+    # The customer can select its own featured game for its own terminals
+    # This selected game will overwrite the game that is selected as featured for everyone
+    featured_game = models.ForeignKey(Game, on_delete=models.SET_NULL, null=True)
+
+    def __str__(self):
+        return self.company or ""
