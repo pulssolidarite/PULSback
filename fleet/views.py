@@ -7,7 +7,7 @@ from rest_framework import generics
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
-from backend.permissions import NormalUserIsCurrentUser, IsAdminOrCustomerUser
+from backend.permissions import NormalUserIsCurrentUser, IsAdminOrCustomerUser, NonAdminUserCanOnlyGet
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from django.shortcuts import get_object_or_404
@@ -102,13 +102,7 @@ class DeactivateCustomer(APIView):
 class CampaignViewSet(viewsets.ModelViewSet):
     serializer_class = CampaignFullSerializer
     queryset = Campaign.objects.all()
-
-    def get_permissions(self):
-        if self.action in ["list", "retrieve" "featured", "not_featured"]:
-            permission_classes = [IsAuthenticated, IsAdminOrCustomerUser]
-        else:
-            permission_classes = [IsAuthenticated, IsAdminUser]
-        return [permission() for permission in permission_classes]
+    permission_classes = [IsAuthenticated, IsAdminOrCustomerUser, NonAdminUserCanOnlyGet]
 
     def list(self, request, *args, **kwargs):
         serializer = self.get_serializer(self.get_queryset().order_by("-featured", "name"), many=True, read_only=True)
@@ -126,7 +120,7 @@ class CampaignViewSet(viewsets.ModelViewSet):
         campaign.save()
         return Response(status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated, IsAdminOrCustomerUser])
     def featured(self, request, pk, format=None):
         user: User = request.user
         campaign = get_object_or_404(self.get_queryset(), pk=pk)
@@ -142,7 +136,7 @@ class CampaignViewSet(viewsets.ModelViewSet):
 
         return Response(status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated, IsAdminOrCustomerUser])
     def not_featured(self, request, pk, format=None):
         user: User = request.user
         campaign = get_object_or_404(self.get_queryset(), pk=pk)

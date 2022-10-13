@@ -136,11 +136,11 @@ class Customer(models.Model):
 
     # The customer can select its own featured campaign for its own terminals
     # This selected campaign will overwrite the campaign that is selected as featured for everyone
-    featured_campaign = models.ForeignKey(Campaign, on_delete=models.SET_NULL, null=True)
+    featured_campaign = models.ForeignKey(Campaign, on_delete=models.SET_NULL, null=True, blank=True)
 
     # The customer can select its own featured game for its own terminals
     # This selected game will overwrite the game that is selected as featured for everyone
-    featured_game = models.ForeignKey(Game, on_delete=models.SET_NULL, null=True)
+    featured_game = models.ForeignKey(Game, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         return self.company or ""

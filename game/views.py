@@ -12,11 +12,12 @@ from rest_framework import viewsets
 from .forms import *
 
 from fleet.models import User
-from backend.permissions import IsAdminOrCustomerUser
+from backend.permissions import IsAdminOrCustomerUser, NonAdminUserCanOnlyGet
 
 
 class GameViewSet(viewsets.ModelViewSet):
     queryset = Game.objects.all()
+    permission_classes = [IsAuthenticated, IsAdminOrCustomerUser, NonAdminUserCanOnlyGet]
 
     def get_serializer_class(self):
         user: User = self.request.user
@@ -25,13 +26,6 @@ class GameViewSet(viewsets.ModelViewSet):
             return GameSerializer # Return extended serializer only for admin
         
         return GameLightSerializer
-
-    def get_permissions(self):
-        if self.action in ["list", "retrieve" "featured", "not_featured"]:
-            permission_classes = [IsAuthenticated, IsAdminOrCustomerUser]
-        else:
-            permission_classes = [IsAuthenticated, IsAdminUser]
-        return [permission() for permission in permission_classes]
 
     def list(self, request, *args, **kwargs):
         serializer = self.get_serializer(self.get_queryset().filter(is_archived=False).order_by("-featured", "name"), many=True, read_only=True)
@@ -57,7 +51,7 @@ class GameViewSet(viewsets.ModelViewSet):
             print(form.errors)
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated, IsAdminOrCustomerUser])
     def featured(self, request, pk, format=None):
         user: User = request.user
         game = get_object_or_404(self.get_queryset(), pk=pk)
@@ -73,7 +67,7 @@ class GameViewSet(viewsets.ModelViewSet):
 
         return Response(status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated, IsAdminOrCustomerUser])
     def not_featured(self, request, pk, format=None):
         user: User = request.user
         game = get_object_or_404(self.get_queryset(), pk=pk)
