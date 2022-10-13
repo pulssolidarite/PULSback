@@ -10,7 +10,7 @@ from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
 from django.conf import settings
 
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework import status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -21,7 +21,7 @@ from game.models import Game
 from fleet.models import Customer, User
 from fleet.serializers import CustomerSerializer, CampaignSerializer
 
-from backend.permissions import IsAdminOrCustomerUser, NormalUserListRetrieveOnly
+from backend.permissions import IsAdminOrCustomerUser
 
 from .models import Terminal, Donator, Session, Payment,Campaign
 from .serializers import *
@@ -34,7 +34,6 @@ class TerminalViewSet(viewsets.ModelViewSet):
     """
 
     queryset = Terminal.objects.filter(is_archived=False)
-    permission_classes = [IsAuthenticated, IsAdminOrCustomerUser, NormalUserListRetrieveOnly]
     serializer_class = FullTerminalSerializer
 
     def get_queryset(self):
@@ -49,10 +48,16 @@ class TerminalViewSet(viewsets.ModelViewSet):
         else:
             raise PermissionDenied()
 
-    def retrieve(self, request, *args, **kwargs):
-        queryset = get_object_or_404(self.get_queryset(), pk=kwargs["pk"])
-        serializer = TerminalFullSerializer(queryset, many=False)
-        return Response(serializer.data)
+    def get_permissions(self):
+        """
+        Allow admin and customers to list, retrieve and update but only admin to do any other actions
+        
+        """
+        if self.action == "list" or self.action == "retrieve" or self.action == "update":
+            permission_classes = [IsAuthenticated, IsAdminOrCustomerUser]
+        else:
+            permission_classes = [IsAuthenticated, IsAdminUser]
+        return [permission() for permission in permission_classes]
 
     def list(self, request, *args, **kwargs):
         serializer = TerminalSemiSerializer(self.get_queryset(), many=True, read_only=True)

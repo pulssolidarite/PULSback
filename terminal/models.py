@@ -22,6 +22,9 @@ class Terminal(models.Model):
     free_mode_text = models.CharField(max_length=250, blank=True, null=True)
     payment_terminal = models.CharField(max_length=250, null=True, blank=True)
     donation_formula = models.CharField(max_length=250, null=True)
+    donation_min_amount = models.IntegerField(default=1)
+    donation_default_amount = models.IntegerField(default=1)
+    donation_max_amount = models.IntegerField(default=50)
 
     @property
     def visible_screensaver_broadcasts(self):
@@ -108,5 +111,21 @@ class Payment(models.Model):
     amount = models.FloatField()
     currency = models.CharField(max_length=255)
 
+    # Save terminal donation formula and payment terminal in payment
+    # In case the terminal donation formula or the payment terminal change in the futur,
+    # we keep track of the donation formula and the payment terminal at the time of the payment
+    donation_formula = models.CharField(max_length=250, null=True, blank=True) # TODO can be null ? 
+    payment_terminal = models.CharField(max_length=250, null=True, blank=True) # TODO can be null ? 
+
     def __str__(self):
         return "Payment of {} {} by {}".format(self.amount, self.currency, self.donator)
+
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            if not self.donation_formula:
+                self.donation_formula = self.terminal.donation_formula
+
+            if not self.payment_terminal:
+                self.payment_terminal = self.terminal.payment_terminal
+        
+        super(Payment, self).save(*args, **kwargs)

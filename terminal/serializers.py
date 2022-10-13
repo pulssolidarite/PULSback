@@ -51,6 +51,12 @@ class FullTerminalSerializer(serializers.ModelSerializer):
         many=True,
         read_only=True,
     )
+    total_donations = serializers.ReadOnlyField()
+    payments = PaymentForTerminalSerializer(many=True, read_only=True)
+    avg_donation = serializers.ReadOnlyField()
+    avg_timesession = serializers.ReadOnlyField()
+    avg_gametimesession = serializers.ReadOnlyField()
+    subscription_type = serializers.ReadOnlyField()
 
     class Meta:
         model = Terminal

@@ -62,6 +62,11 @@ class Customer(models.Model):
     is_active = models.BooleanField(default=True)
     is_archived = models.BooleanField(default=False)
 
+    can_edit_featured_content = models.BooleanField(default=False)
+    can_edit_donation_formula = models.BooleanField(default=False)
+    can_edit_screensaver_broadcasts = models.BooleanField(default=False)
+    can_see_donators = models.BooleanField(default=False)
+
     def __str__(self):
         return self.company or ""
 

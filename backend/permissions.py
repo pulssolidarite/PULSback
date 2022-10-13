@@ -22,7 +22,6 @@ class NormalUserListRetrieveOnly(permissions.BasePermission):
         else:
             return True
 
-
 class NormalUserIsCurrentUser(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         if request.user and not request.user.is_staff and not request.user.is_superuser:
