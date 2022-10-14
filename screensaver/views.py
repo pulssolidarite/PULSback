@@ -19,7 +19,7 @@ from screensaver.serializers import ScreenSaverMediaSerializer, ScreenSaverBroad
 
 class ScreenSaverMediaViewSet(viewsets.ModelViewSet):
 
-    class _CustomScreenSaverMediaViewSetPermission(permissions.BasePermission):
+    class _CustomPermission(permissions.BasePermission):
         """
         Custom permission for ScreenSaverMediaViewSet
         """
@@ -35,7 +35,7 @@ class ScreenSaverMediaViewSet(viewsets.ModelViewSet):
 
                 else:
                     # Allow user to put, post or delete media only if they are the owner
-                    return obj.owner == user 
+                    return obj.owner == user and user.get_customer().can_edit_screensaver_broadcasts
 
             elif user.is_staff:
                 # Allow staff member to fetch, post, put or delete media only if this media belong to a staff member or if this media is public
@@ -46,7 +46,7 @@ class ScreenSaverMediaViewSet(viewsets.ModelViewSet):
 
     serializer_class = ScreenSaverMediaSerializer
     queryset = ScreensaverMedia.objects.none()
-    permission_classes = [IsAuthenticated, IsAdminOrCustomerUser, _CustomScreenSaverMediaViewSetPermission]
+    permission_classes = [IsAuthenticated, IsAdminOrCustomerUser, _CustomPermission]
 
     def get_queryset(self):
         user: User = self.request.user
@@ -66,8 +66,32 @@ class ScreenSaverMediaViewSet(viewsets.ModelViewSet):
 
 
 class ScreenSaverBroadcastViewSet(viewsets.ModelViewSet):
+
+    class _CustomPermission(permissions.BasePermission):
+        """
+        Custom permission for ScreenSaverBroadcastViewSet
+        """
+
+        def has_object_permission(self, request, view, obj: ScreensaverMedia):
+
+            user: User = request.user
+
+            if user.is_customer_user():
+                if request.method == 'GET':
+                    return obj.terminal.customer == user.get_customer()
+
+                else:
+                    return obj.terminal.customer == user.get_customer() and user.get_customer().can_edit_screensaver_broadcasts
+
+            elif user.is_staff:
+                # Allow staff member to fetch, post, put or delete media only if this media belong to a staff member or if this media is public
+                return obj.media.scope == obj.PUBLIC_SCOPE or obj.media.owner.is_staff
+
+            else:
+                raise PermissionDenied()
+
     queryset = ScreensaverBroadcast.objects.none()
-    permission_classes = [IsAuthenticated, IsAdminOrCustomerUser]
+    permission_classes = [IsAuthenticated, IsAdminOrCustomerUser, _CustomPermission]
     serializer_class = ScreenSaverBroadcastSerializer
 
     def get_queryset(self):
@@ -79,7 +103,7 @@ class ScreenSaverBroadcastViewSet(viewsets.ModelViewSet):
 
         if user.is_customer_user():
             # Customer user can access every broadcast to a terminal that belong to themselves
-            return ScreensaverBroadcast.objects.filter(media__owner=user)
+            return ScreensaverBroadcast.objects.filter(terminal__customer=user.get_customer())
 
         else:
             raise PermissionDenied()
