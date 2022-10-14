@@ -130,9 +130,9 @@ class Customer(models.Model):
 
     can_edit_featured_content = models.BooleanField(default=False)
     can_edit_donation_formula = models.BooleanField(default=False)
+    can_edit_donation_amount = models.BooleanField(default=False)
     can_edit_screensaver_broadcasts = models.BooleanField(default=False)
     can_see_donators = models.BooleanField(default=False)
-    can_edit_donation_amount = models.BooleanField(default=False)
 
     # The customer can select its own featured campaign for its own terminals
     # This selected campaign will overwrite the campaign that is selected as featured for everyone

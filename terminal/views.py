@@ -274,11 +274,13 @@ class PaymentFiltered(APIView):
 
         # Filter by donation_formula
 
-        # TODO
+        if donation_formula and donation_formula not in ["all", "", " "]:
+            payments = payments.filter(donation_formula=donation_formula)
 
         # Filter by payment_terminal
 
-        # TODO
+        if payment_terminal and payment_terminal not in ["all", "", " "]:
+            payments = payments.filter(payment_terminal=payment_terminal)
 
         # Filter by date_start
 

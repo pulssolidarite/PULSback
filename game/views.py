@@ -52,35 +52,21 @@ class GameViewSet(viewsets.ModelViewSet):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated, IsAdminOrCustomerUser])
-    def featured(self, request, pk, format=None):
+    def toggle_featured(self, request, pk, format=None):
         user: User = request.user
         game = get_object_or_404(self.get_queryset(), pk=pk)
 
         if user.is_staff:
-            game.featured = True
-            game.save()
-
-        else:
-            customer = user.get_customer()
-            customer.featured_game = game
-            customer.save()
-
-        return Response(status=status.HTTP_200_OK)
-
-    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated, IsAdminOrCustomerUser])
-    def not_featured(self, request, pk, format=None):
-        user: User = request.user
-        game = get_object_or_404(self.get_queryset(), pk=pk)
-
-        if user.is_staff:
-            game.featured = False
+            game.featured = not game.featured
             game.save()
 
         else:
             customer = user.get_customer()
             if customer.featured_game == game:
                 customer.featured_game = None
-                customer.save()
+            else:
+                customer.featured_game = game
+            customer.save()
 
         return Response(status=status.HTTP_200_OK)
 

@@ -68,11 +68,10 @@ class CustomerDetailByUser(APIView):
 class CustomerViewSet(viewsets.ModelViewSet):
     serializer_class = CustomerSerializer
     queryset = Customer.objects.filter(is_archived=False)
-    permission_classes = [IsAdminUser]
-
+    permission_classes = [IsAuthenticated, IsAdminUser]
 
 class ActivateCustomer(APIView):
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAuthenticated, IsAdminUser]
 
     def get(self, request, pk, format=None):
         try:
@@ -86,7 +85,7 @@ class ActivateCustomer(APIView):
 
 
 class DeactivateCustomer(APIView):
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAuthenticated, IsAdminUser]
 
     def get(self, request, pk, format=None):
         try:
@@ -121,35 +120,21 @@ class CampaignViewSet(viewsets.ModelViewSet):
         return Response(status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated, IsAdminOrCustomerUser])
-    def featured(self, request, pk, format=None):
+    def toggle_featured(self, request, pk, format=None):
         user: User = request.user
         campaign = get_object_or_404(self.get_queryset(), pk=pk)
 
         if user.is_staff:
-            campaign.featured = True
-            campaign.save()
-
-        else:
-            customer = user.get_customer()
-            customer.featured_campaign = campaign
-            customer.save()
-
-        return Response(status=status.HTTP_200_OK)
-
-    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated, IsAdminOrCustomerUser])
-    def not_featured(self, request, pk, format=None):
-        user: User = request.user
-        campaign = get_object_or_404(self.get_queryset(), pk=pk)
-
-        if user.is_staff:
-            campaign.featured = False
+            campaign.featured = not campaign.featured
             campaign.save()
 
         else:
             customer = user.get_customer()
             if customer.featured_campaign == campaign:
                 customer.featured_campaign = None
-                customer.save()
+            else:
+                customer.featured_campaign = campaign
+            customer.save()
 
         return Response(status=status.HTTP_200_OK)
 

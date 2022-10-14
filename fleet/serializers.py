@@ -9,6 +9,14 @@ class CustomerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Customer
         fields = '__all__'
+        read_only_fields = (
+            "user",
+            "logo",
+            "is_archived",
+            "is_active",
+            "featured_campaign",
+            "featured_game",
+        )
 
 
 # Serializer pour le model User
