@@ -198,39 +198,34 @@ class PaymentFiltered(APIView):
     def get(self, request, format=None):
         """
         Possible query params :
-        - campaign_id
-        - terminal_id
-        - client_id
+        - campaign
+        - terminal
+        - customer
         - status
-        - game_id
+        - game
         - date
         - date_start
         - date_end
-        - results_number
         - payment_terminal
         - donation_formula
         """
 
         # Fetch params
         
-        campaign_id = self.request.query_params.get('campaign_id')
-        terminal_id = self.request.query_params.get('terminal_id')
-        client_id = self.request.query_params.get('client_id')
+        campaign_id = self.request.query_params.get('campaign')
+        terminal_id = self.request.query_params.get('terminal')
+        customer_id = self.request.query_params.get('customer')
         donation_formula = self.request.query_params.get('donation_formula')
         payment_status = self.request.query_params.get('status')
-        game_id = self.request.query_params.get('game_id')
+        game_id = self.request.query_params.get('game')
         date = self.request.query_params.get('date')
         date_start = self.request.query_params.get('date_start')
         date_end = self.request.query_params.get('date_end')
         payment_terminal = self.request.query_params.get('payment_terminal')
-        results_number = self.request.query_params.get('results_number')
 
         # Parse results_number
         
-        if results_number:
-            results_number = int(results_number)
-        else:
-            results_number = 50
+        results_number = 50
 
         # Query payments (all payments if logged user is admin, only customer payments if logged user is customer)
 
@@ -249,49 +244,49 @@ class PaymentFiltered(APIView):
 
         # Filter by terminals
 
-        if terminal_id and terminal_id not in ["all", "", " "]:
+        if terminal_id:
             payments = payments.filter(terminal=terminal_id)
 
         # Filter by customer
 
-        if client_id and client_id not in ["all", "", " "]:
-            payments = payments.filter(terminal__customer_id=client_id)
+        if customer_id:
+            payments = payments.filter(terminal__customer_id=customer_id)
 
         # Filter by campaign
 
-        if campaign_id and campaign_id not in ["all", "", " "]:
+        if campaign_id:
             payments = payments.filter(campaign_id=campaign_id)
 
         # Filter by game
 
-        if game_id and campaign_id not in ["all", "", " "]:
+        if game_id:
             payments = payments.filter(game_id=game_id)
 
         # Filter by payment_status
 
-        if payment_status and payment_status not in ["all", "", " "]:
+        if payment_status:
             payments = payments.filter(status=payment_status)
 
         # Filter by donation_formula
 
-        if donation_formula and donation_formula not in ["all", "", " "]:
+        if donation_formula:
             payments = payments.filter(donation_formula=donation_formula)
 
         # Filter by payment_terminal
 
-        if payment_terminal and payment_terminal not in ["all", "", " "]:
+        if payment_terminal:
             payments = payments.filter(payment_terminal=payment_terminal)
 
         # Filter by date_start
 
-        if date_start and date_start not in ['DD-MM-YYYY H:m:s', 'DD-MM-YYYY', "", " "]:
+        if date_start:
             formatted_date = date_start.replace('T', ' ')
             converted_date_start =  datetime.datetime.strptime(formatted_date, '%d-%m-%Y %H:%M:%S')
             payments = payments.filter(date__gte=converted_date_start)
 
         # Filter by date_end
 
-        if date_end and date_end not in ['DD-MM-YYYY H:m:s', 'DD-MM-YYYY', "", " "]:
+        if date_end:
             formatted_date = date_end.replace('T', ' ')
             converted_date_end =  datetime.datetime.strptime(formatted_date, '%d-%m-%Y %H:%M:%S')
             payments = payments.filter(date__lt=converted_date_end)
@@ -397,11 +392,6 @@ class PaymentFiltered(APIView):
         payments = payments.order_by('-date')[:results_number]
         not_skiped_payments = not_skiped_payments.order_by('-date')[:results_number]
 
-        # Count filtred results
-
-        payment_count = payments.count()
-        not_skiped_payment_count = not_skiped_payments.count()
-
         # Serialize filtred payments
 
         payments_serialized = PaymentFullSerializer(payments, many=True, context={"request": request})
@@ -415,7 +405,15 @@ class PaymentFiltered(APIView):
         if (amountSum is None ): amountSum = 0
         if (amountAvg is None): amountAvg = 0.0
         
-        return Response({ 'payments' :  payments_serialized.data, 'amountSum': amountSum, 'amountAvg': amountAvg , 'total_games': payment_count, 'TotalResults' : total_payment_count}, status=status.HTTP_200_OK)
+        return Response(
+            {
+                'payments': payments_serialized.data,
+                'amount_sum': amountSum,
+                'amount_avg': amountAvg,
+                'total_number_of_payments' : total_payment_count,
+            },
+            status=status.HTTP_200_OK
+        )
 
 
 class CSVviewSet(APIView):
