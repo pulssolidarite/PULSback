@@ -9,6 +9,8 @@ from django.db.models import Avg, Sum
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
 from django.conf import settings
+from django.core.paginator import Paginator
+
 
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework import status, viewsets
@@ -187,13 +189,61 @@ class FilterSelectItems(APIView):
         else:
             raise PermissionDenied()
 
+
+
+
+
+
 class PaymentFiltered(APIView):
     """
     This view is used from SETH front admin or customer
     """
-    # TODO filter by user
 
     permission_classes = [IsAuthenticated, IsAdminOrCustomerUser] # Only accessible for admin or customer users
+
+    class _PaymentWithoutDonatorSerializer(serializers.ModelSerializer):
+
+    
+        class _TerminalSerializer(serializers.ModelSerializer):
+
+            class _CustomerSerializer(serializers.ModelSerializer):
+                class Meta:
+                    model = Customer
+                    fields = ("company",)
+
+            customer = _CustomerSerializer(many=False, read_only=True)
+            class Meta:
+                model = Terminal
+                fields = ("id", "name", "customer", "payment_terminal", "donation_formula",)
+
+        class _CampaignSerializer(serializers.ModelSerializer):
+            class Meta:
+                model = Campaign
+                fields = ("name",)
+
+        class _GameSerializer(serializers.ModelSerializer):
+            class Meta:
+                model = Game
+                fields = ("name",)
+
+        terminal = _TerminalSerializer(many=False, read_only=True)
+        campaign = _CampaignSerializer(many=False, read_only=True)
+        game = _GameSerializer(many=False, read_only=True)
+        class Meta:
+            model = Payment
+            fields = ("id", "date", "status", "terminal", "campaign", "game", "amount",)
+
+    class _PaymentWithDonatorSerializer(_PaymentWithoutDonatorSerializer):
+
+        class _DonatorSerializer(serializers.ModelSerializer):
+            class Meta:
+                model = Donator
+                fields = ("email",)
+
+        donator = _DonatorSerializer(many=False, read_only=True)
+        class Meta:
+            model = Payment
+            fields = ("id", "date", "status", "donator", "terminal", "campaign", "game", "amount",)
 
     def get(self, request, format=None):
         """
@@ -222,10 +272,7 @@ class PaymentFiltered(APIView):
         date_start = self.request.query_params.get('date_start')
         date_end = self.request.query_params.get('date_end')
         payment_terminal = self.request.query_params.get('payment_terminal')
-
-        # Parse results_number
-        
-        results_number = 50
+        page = self.request.query_params.get("page", 1)        
 
         # Query payments (all payments if logged user is admin, only customer payments if logged user is customer)
 
@@ -241,11 +288,11 @@ class PaymentFiltered(APIView):
 
         else:
             raise PermissionDenied()
-
+        
         # Filter by terminals
 
         if terminal_id:
-            payments = payments.filter(terminal=terminal_id)
+            payments = payments.filter(terminal_id=terminal_id)
 
         # Filter by customer
 
@@ -293,7 +340,7 @@ class PaymentFiltered(APIView):
 
         # Filter by date (period)
 
-        if date is "Today":
+        if date == "Today":
             today = datetime.datetime.now().date()
             tomorrow = today + datetime.timedelta(1)
             today_start = datetime.datetime.combine(today, datetime.time())
@@ -301,7 +348,7 @@ class PaymentFiltered(APIView):
 
             payments = payments.filter(date__gte=today_start, date_lt=today_end)
 
-        elif date is "Yesterday":
+        elif date == "Yesterday":
             today = datetime.datetime.now().date()
             tomorrow = today + datetime.timedelta(1)
             after_tomorrow = tomorrow + datetime.timedelta(1)
@@ -310,7 +357,7 @@ class PaymentFiltered(APIView):
 
             payments = payments.filter(date__gte=tomorrow_start, date_lt=tomorrow_end)
 
-        elif date is "7days":
+        elif date == "7days":
             today = datetime.datetime.now().date()
             today_start = datetime.datetime.combine(today, datetime.time())
 
@@ -319,7 +366,7 @@ class PaymentFiltered(APIView):
 
             payments = payments.filter(date__gte=today_start, date_lt=in_7_days_end)
 
-        elif date is "CurrentWeek":
+        elif date == "CurrentWeek":
             today = datetime.datetime.now().date()
             tomorrow = today + datetime.timedelta(1)
             today_end = datetime.datetime.combine(tomorrow, datetime.time())
@@ -329,7 +376,7 @@ class PaymentFiltered(APIView):
 
             payments = payments.filter(date__gte=monday_of_this_week_start, date_lt=today_end)
 
-        elif date is "LastWeek":
+        elif date == "LastWeek":
             some_day_last_week = datetime.now().date() - datetime.timedelta(days=7)
             monday_of_last_week = some_day_last_week - datetime.timedelta(days=(some_day_last_week.isocalendar()[2] - 1))
             monday_of_last_week_start = datetime.datetime.combine(monday_of_last_week, datetime.time())
@@ -339,7 +386,7 @@ class PaymentFiltered(APIView):
 
             payments = payments.filter(date__gte=monday_of_last_week_start, date_lt=monday_of_this_week_start)
 
-        elif date is "CurrentMonth":
+        elif date == "CurrentMonth":
             now = datetime.datetime.now()
             start_month = datetime.datetime(now.year, now.month, 1)
             date_on_next_month = start_month + datetime.datetime.timedelta(35)
@@ -347,7 +394,7 @@ class PaymentFiltered(APIView):
 
             payments = payments.filter(date__gte=start_month, date_lt=start_next_month)
 
-        elif date is "LastMonth":
+        elif date == "LastMonth":
             today = datetime.datetime.date.today()
             first = today.replace(day=1)  # first date of current month
             end_previous_month = first - datetime.datetime.timedelta(days=1)
@@ -358,7 +405,7 @@ class PaymentFiltered(APIView):
 
             payments = payments.filter(date__gte=start_previous_month, date_lt=start_this_month)
 
-        elif date is "ThisYear":
+        elif date == "ThisYear":
             now = datetime.datetime.now()
             first_day_of_this_year = now.date().replace(day=1, month=1)
             first_day_of_this_year_begining = datetime.datetime.combine(first_day_of_this_year, datetime.time())
@@ -369,7 +416,7 @@ class PaymentFiltered(APIView):
 
             payments = payments.filter(date__gte=first_day_of_this_year_begining, date_lt=first_day_of_next_year_begining)
 
-        elif date is "LastYear":
+        elif date == "LastYear":
             now = datetime.datetime.now()
             first_day_of_next_year = now.date().replace(day=1, month=1, year=now.year - 1)
             first_day_of_next_year_begining = datetime.datetime.combine(first_day_of_next_year, datetime.time())
@@ -379,24 +426,9 @@ class PaymentFiltered(APIView):
 
             payments = payments.filter(date__gte=first_day_of_next_year_begining, date_lt=first_day_of_this_year_begining)
 
-        # Extract non skiped payments
+        # Extract non skiped payments and count
 
         not_skiped_payments = payments.exclude(status="Skiped")
-
-        # Count total payments
-
-        total_payment_count = payments.count()
-
-        # Order by date and extract x first ones
-
-        payments = payments.order_by('-date')[:results_number]
-        not_skiped_payments = not_skiped_payments.order_by('-date')[:results_number]
-
-        # Serialize filtred payments
-
-        payments_serialized = PaymentFullSerializer(payments, many=True, context={"request": request})
-
-        # Count amount
 
         amountSum = not_skiped_payments.aggregate(Sum('amount'))['amount__sum']
         amountAvg = not_skiped_payments.aggregate(Avg('amount'))['amount__avg']
@@ -404,13 +436,32 @@ class PaymentFiltered(APIView):
         if (amountAvg ): amountAvg = round(amountAvg,2)
         if (amountSum is None ): amountSum = 0
         if (amountAvg is None): amountAvg = 0.0
-        
+
+        # Count total payments
+
+        total_payment_count = payments.count()
+
+        # Order by date and paginate
+
+        paginator = Paginator(payments, 10)
+        payments_paginated_queryset = paginator.get_page(page)
+
+        # Serialize filtred payments
+
+        serializer_class = None
+        if user.is_staff or (user.is_customer_user() and user.get_customer().can_see_donators):
+            serializer_class = _PaymentWithDonatorSerializer
+        else:
+            serializer_class = _PaymentWithoutDonatorSerializer
+
+        serializer = serializer_class(payments_paginated_queryset, many=True)
+
         return Response(
             {
-                'payments': payments_serialized.data,
+                'payments': serializer.data,
                 'amount_sum': amountSum,
                 'amount_avg': amountAvg,
-                'total_number_of_payments' : total_payment_count,
+                'total_number_of_payments': total_payment_count,
             },
             status=status.HTTP_200_OK
         )
