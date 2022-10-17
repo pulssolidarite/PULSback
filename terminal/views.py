@@ -194,7 +194,7 @@ class FilterSelectItems(APIView):
 
 
 
-class PaymentFiltered(APIView):
+class PaymentFilteredViewSet(viewsets.ViewSet):
     """
     This view is used from SETH front admin or customer
     """
@@ -229,6 +229,7 @@ class PaymentFiltered(APIView):
         terminal = _TerminalSerializer(many=False, read_only=True)
         campaign = _CampaignSerializer(many=False, read_only=True)
         game = _GameSerializer(many=False, read_only=True)
+
         class Meta:
             model = Payment
             fields = ("id", "date", "status", "terminal", "campaign", "game", "amount",)
@@ -238,14 +239,15 @@ class PaymentFiltered(APIView):
         class _DonatorSerializer(serializers.ModelSerializer):
             class Meta:
                 model = Donator
-                fields = ("email",)
+                fields = ("email", "accept_newsletter", "accept_asso",)
 
         donator = _DonatorSerializer(many=False, read_only=True)
+
         class Meta:
             model = Payment
             fields = ("id", "date", "status", "donator", "terminal", "campaign", "game", "amount",)
 
-    def get(self, request, format=None):
+    def _get_data(self, request):
         """
         Possible query params :
         - campaign
@@ -456,56 +458,51 @@ class PaymentFiltered(APIView):
 
         serializer = serializer_class(payments_paginated_queryset, many=True)
 
+        return serializer.data, amountSum, amountAvg, total_payment_count
+
+
+    def list(self, request):
+        payments_data, amountSum, amountAvg, total_payment_count = self._get_data(request)
+
         return Response(
             {
-                'payments': serializer.data,
+                'payments': payments_data,
                 'amount_sum': amountSum,
                 'amount_avg': amountAvg,
                 'total_number_of_payments': total_payment_count,
             },
-            status=status.HTTP_200_OK
+            status=status.HTTP_200_OK,
         )
 
+    @action(detail=False, methods=['get'])
+    def to_csv(self, request):
+        payments_data, _, _, _ = self._get_data(request)
 
-class CSVviewSet(APIView):
-    """
-    This view is used from SETH front admin or customer
-    """
-    # TODO filter by user
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="export.csv"'
 
-    permission_classes = [IsAuthenticated, IsAdminOrCustomerUser] # Only accessible for admin or customer users
+        writer = csv.DictWriter(response, fieldnames=['Id', 'Date',  'Transaction', 'Email donateur', 'Accord newsletter', 'Accord asso', 'Campagne', 'Terminal', 'Client', 'TPE', 'Montant en €','Jeu', 'Formule de dons'])
+        writer.writeheader()
 
-    def get(self, request, format=None):
-            res = PaymentFiltered.get(self, request)
-            data = dict(res.data)
-            response = HttpResponse(content_type='text/csv')
-            response['Content-Disposition'] = 'attachment; filename="export.csv"'
-            writer = csv.DictWriter(response, fieldnames=['Id', 'Date',  'Transaction', 'Email donateur', 'Accord newsletter', 'Accord asso', 'Campagne', 'Terminal', 'Client', 'TPE', 'Montant en €','Jeu', 'Formule de dons'])
-            writer.writeheader()
-            for key in data['payments']:
-                try:
-                    writer.writerow(
-                        {
-                            'Id': key['id'], 
-                            'Date': key['date'].replace('-','/'),
-                            'Transaction': key['status'],
-                            'Email donateur': key['donator']["email"] if key['donator']["email"] else ' ',
-                            'Accord newsletter': "Oui" if key['donator']["accept_newsletter"] else "Non",
-                            'Accord asso': "Oui" if key['donator']["accept_asso"] else "Non",
-                            'Campagne': key['campaign']['name'],
-                            'Terminal': key['terminal']['name'],
-                            'Client': key['terminal']['customer']['company'],
-                            'TPE': key['terminal']['payment_terminal'],
-                            'Montant en €': key['amount'],
-                            'Jeu': key['game']['name'],
-                            'Formule de dons': key['terminal']['donation_formula'],
-                        }
-                    )
-                except Exception as e:
-                    print(e)
-                    print("KEY", json.dumps(key))
-            return response
-
+        for payment in payments_data:
+            writer.writerow(
+                {
+                    'Id': payment['id'], 
+                    'Date': payment['date'].replace('-','/'),
+                    'Transaction': payment['status'],
+                    'Email donateur': payment['donator']["email"] if payment.get("donator") and payment['donator'].get("email") else ' ',
+                    'Accord newsletter': "Oui" if payment.get("donator") and payment['donator'].get("accept_newsletter") and payment['donator']["accept_newsletter"] == True else "Non" if payment.get("donator") and payment['donator'].get("accept_newsletter") and payment['donator']["accept_newsletter"] == False else " " ,
+                    'Accord asso': "Oui" if payment.get("donator") and payment['donator'].get("accept_asso") and payment['donator']["accept_asso"] == True else "Non" if payment.get("donator") and payment['donator'].get("accept_asso") and payment['donator']["accept_asso"] == False else " " ,
+                    'Campagne': payment['campaign']['name'],
+                    'Terminal': payment['terminal']['name'],
+                    'Client': payment['terminal']['customer']['company'],
+                    'TPE': payment['terminal']['payment_terminal'],
+                    'Montant en €': payment['amount'],
+                    'Jeu': payment['game']['name'],
+                    'Formule de dons': payment['terminal']['donation_formula'],
+                }
+            )
+        return response
 
 
 
