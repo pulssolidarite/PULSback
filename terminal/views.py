@@ -450,9 +450,9 @@ class PaymentFiltered(APIView):
 
         serializer_class = None
         if user.is_staff or (user.is_customer_user() and user.get_customer().can_see_donators):
-            serializer_class = _PaymentWithDonatorSerializer
+            serializer_class = self._PaymentWithDonatorSerializer
         else:
-            serializer_class = _PaymentWithoutDonatorSerializer
+            serializer_class = self._PaymentWithoutDonatorSerializer
 
         serializer = serializer_class(payments_paginated_queryset, many=True)
 
