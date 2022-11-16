@@ -1,10 +1,14 @@
-import datetime
 from rest_framework import serializers
-from .models import Terminal, Donator, Session, Payment
-from game.models import Game, Core, GameFile, CoreFile
+
+from screensaver.serializers.screensaver_broadcast import ScreenSaverBroadcastSerializer
+
 from fleet.models import Campaign
-from fleet.serializers import CampaignSerializer, UserFullSerializer, UserSerializer
+from fleet.serializers import CampaignSerializer, UserFullSerializer, CustomerSerializer
+
 from game.serializers import GameSerializer
+from game.models import Game
+
+from .models import Terminal, Donator, Session, Payment
 
 
 # Serializer pour le model Donator
@@ -30,27 +34,51 @@ class PaymentForTerminalSerializer(serializers.ModelSerializer):
 
 
 # Serializer pour le model Terminal
-class TerminalSerializer(serializers.ModelSerializer):
+class FullTerminalSerializer(serializers.ModelSerializer):
+    """
+    This serialize all data of a terminal.
+    It is intended TO BE USED WITH SETH and serialize all data that could be read or edit by admin or customer from Seth
+    (including terminal owner, terminal customer, all screensavers...)
+    """
+    owner = UserFullSerializer(many=False, read_only=True)
+    customer = CustomerSerializer(many=False, read_only=True)
     campaigns = serializers.PrimaryKeyRelatedField(queryset=Campaign.objects.all(), many=True, allow_null=True)
     games = serializers.PrimaryKeyRelatedField(queryset=Game.objects.all(), many=True, allow_null=True)
     subscription_type = serializers.ReadOnlyField()
-    # owner = UserSerializer(many=False, read_only=True)
     payment_terminal = serializers.CharField(allow_null=True)
     donation_formula = serializers.CharField()
+    screensaver_broadcasts = ScreenSaverBroadcastSerializer(
+        many=True,
+        read_only=True,
+    )
+    total_donations = serializers.ReadOnlyField()
+    payments = PaymentForTerminalSerializer(many=True, read_only=True)
+    avg_donation = serializers.ReadOnlyField()
+    avg_timesession = serializers.ReadOnlyField()
+    avg_gametimesession = serializers.ReadOnlyField()
+    subscription_type = serializers.ReadOnlyField()
 
     class Meta:
         model = Terminal
         fields = '__all__'
 
 
-class TerminalSerializerWithOwner(serializers.ModelSerializer):
+class LightTerminalSerializer(serializers.ModelSerializer):
+    """
+    This serialize ONLY STRICTLY NECESSARY DATA FOR HERA.
+    It should serialize only public data as it will be sent to Hera, NO SENSIBLE DATA !
+    (for example, only visible screensavers, not all of them)
+    """
     campaigns = serializers.PrimaryKeyRelatedField(queryset=Campaign.objects.all(), many=True, allow_null=True)
     games = serializers.PrimaryKeyRelatedField(queryset=Game.objects.all(), many=True, allow_null=True)
     subscription_type = serializers.ReadOnlyField()
-    owner = UserFullSerializer(many=False, read_only=True)
     payment_terminal = serializers.CharField(allow_null=True)
     donation_formula = serializers.CharField()
-
+    screensaver_broadcasts = ScreenSaverBroadcastSerializer(
+        many=True,
+        read_only=True,
+        source="visible_screensaver_broadcasts",
+    )
     class Meta:
         model = Terminal
         fields = '__all__'
@@ -68,6 +96,7 @@ class TerminalSemiSerializer(serializers.Serializer):
     campaigns = CampaignSerializer(many=True, allow_null=True)
     games = GameSerializer(many=True, allow_null=True)
     owner = UserFullSerializer(many=False, read_only=True)
+    customer = CustomerSerializer(many=False, read_only=True)
     total_donations = serializers.ReadOnlyField()
     avg_donation = serializers.ReadOnlyField()
     avg_timesession = serializers.ReadOnlyField()
@@ -90,6 +119,7 @@ class TerminalFullSerializer(serializers.Serializer):
     campaigns = CampaignSerializer(many=True, allow_null=True)
     games = GameSerializer(many=True, allow_null=True)
     owner = UserFullSerializer(many=False, read_only=True)
+    customer = CustomerSerializer(many=False, read_only=True)
     total_donations = serializers.ReadOnlyField()
     payments = PaymentForTerminalSerializer(many=True, read_only=True)
     avg_donation = serializers.ReadOnlyField()
@@ -106,7 +136,7 @@ class TerminalFullSerializer(serializers.Serializer):
 class PaymentFullSerializer(serializers.ModelSerializer):
     donator = DonatorSerializer(many=False, read_only=True)
     campaign = CampaignSerializer(many=False, read_only=True)
-    terminal = TerminalSerializerWithOwner(many=False, read_only=True)
+    terminal = FullTerminalSerializer(many=False, read_only=True)
     game = GameSerializer(many=False, read_only=True)
 
 

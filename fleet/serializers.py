@@ -9,18 +9,25 @@ class CustomerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Customer
         fields = '__all__'
+        read_only_fields = (
+            "user",
+            "logo",
+            "is_archived",
+            "is_active",
+            "featured_campaign",
+            "featured_game",
+        )
 
 
 # Serializer pour le model User
 class UserSerializer(serializers.ModelSerializer):
-    #customer = CustomerSerializer(many=False, read_only=True)
+
     class Meta:
         model = User
         fields = '__all__'
 
     def create(self, validated_data):
         obj = User.objects.create_user(validated_data['username'], '', validated_data['password'])
-        obj.customer = validated_data['customer']
         obj.save()
         return obj
 
