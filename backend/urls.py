@@ -13,13 +13,19 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
 from django.contrib import admin
 from django.urls import path, include
+from django.conf.urls.static import static
+
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework.routers import DefaultRouter
+
 from fleet.views import *
 from terminal.views import *
-from django.conf.urls.static import static
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from screensaver.views import *
+from game.views import GameViewSet
+
 
 
 router = DefaultRouter()
@@ -27,8 +33,12 @@ router.register(r'customer', CustomerViewSet)
 router.register(r'campaign', CampaignViewSet)
 router.register(r'terminal', TerminalViewSet)
 router.register(r'donator', DonatorViewSet)
+router.register(r'games', GameViewSet)
 router.register(r'session', SessionViewSet)
+router.register(r'payment/filtered', PaymentFilteredViewSet, basename="filtered_payments")
 router.register(r'payment', PaymentViewSet)
+router.register(r'screensaver-medias', ScreenSaverMediaViewSet)
+router.register(r'screensaver-broadcasts', ScreenSaverBroadcastViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -42,11 +52,6 @@ urlpatterns = [
     path('customer/<int:pk>/activate/', ActivateCustomer.as_view()),
     path('customer/<int:pk>/deactivate/', DeactivateCustomer.as_view()),
     path('customer/user/<int:user_id>/', CustomerDetailByUser.as_view()),
-    path('terminal/<int:pk>/activate/', ActivateTerminal.as_view()),
-    path('terminal/<int:pk>/deactivate/', DeactivateTerminal.as_view()),
-    path('terminal/<int:pk>/archive/', ArchiveTerminal.as_view()),
-    path('terminal/<int:pk>/campaigns/', CampaignsByTerminal.as_view()),
-    path('terminal/<int:pk>/games/', GamesByTerminal.as_view()),
     path('terminal/mine/', TerminalByOwner.as_view()),
     path('terminal/mine/on/', TurnOnTerminal.as_view()),
     path('terminal/mine/off/', TurnOffTerminal.as_view()),
@@ -63,8 +68,6 @@ urlpatterns = [
     path('game/', include("game.urls")),
     path('dashboard/', DashboardStats.as_view()),
     path('payment/SelectItems/', FilterSelectItems.as_view()),
-    path('payment/filtered/', PaymentFiltered.as_view()),
-    path('payment/exportCSV/', CSVviewSet.as_view()),
 ]
 
 urlpatterns += router.urls

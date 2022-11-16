@@ -1,13 +1,16 @@
 from django.db import models
 from django.conf import settings
-from fleet.models import Campaign
+from fleet.models import Campaign, Customer
 from django.db.models import Avg, Sum
 from game.models import Game
 
 
 class Terminal(models.Model):
     name = models.CharField(max_length=255)
-    owner = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="terminal")
+
+    owner = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="terminal") # User to authenticate terminal TODO rename into user
+    customer = models.ForeignKey(Customer, on_delete=models.PROTECT, related_name="terminals") # Customer who own this terminal
+
     campaigns = models.ManyToManyField(Campaign, related_name="terminals")
     games = models.ManyToManyField(Game, related_name="terminals")
     location = models.CharField(max_length=255, null=True, blank=True)
@@ -19,12 +22,17 @@ class Terminal(models.Model):
     free_mode_text = models.CharField(max_length=250, blank=True, null=True)
     payment_terminal = models.CharField(max_length=250, null=True, blank=True)
     donation_formula = models.CharField(max_length=250, null=True)
+    donation_min_amount = models.IntegerField(default=1)
+    donation_default_amount = models.IntegerField(default=1)
+    donation_max_amount = models.IntegerField(default=50)
 
+    @property
+    def visible_screensaver_broadcasts(self):
+        return self.screensaver_broadcasts.filter(visible=True)
 
     @property
     def subscription_type(self):
-        if self.owner.customer:
-            return self.owner.customer.sales_type or None
+        return self.customer.sales_type or None
 
     @property
     def total_donations(self):
@@ -103,5 +111,21 @@ class Payment(models.Model):
     amount = models.FloatField()
     currency = models.CharField(max_length=255)
 
+    # Save terminal donation formula and payment terminal in payment
+    # In case the terminal donation formula or the payment terminal change in the futur,
+    # we keep track of the donation formula and the payment terminal at the time of the payment
+    donation_formula = models.CharField(max_length=250, null=True, blank=True) # TODO can be null ? 
+    payment_terminal = models.CharField(max_length=250, null=True, blank=True) # TODO can be null ? 
+
     def __str__(self):
         return "Payment of {} {} by {}".format(self.amount, self.currency, self.donator)
+
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            if not self.donation_formula:
+                self.donation_formula = self.terminal.donation_formula
+
+            if not self.payment_terminal:
+                self.payment_terminal = self.terminal.payment_terminal
+        
+        super(Payment, self).save(*args, **kwargs)

@@ -2,11 +2,12 @@ from .models import Customer, Campaign, User, DonationStep
 from django.conf import settings
 from terminal.views import Terminal, Payment
 from terminal.serializers import PaymentFullSerializer
-from .serializers import CustomerSerializer, CampaignSerializer, UserSerializer, CampaignFullSerializer, DonationStepSerializer
+from .serializers import CustomerSerializer, CampaignSerializer, UserSerializer, CampaignFullSerializer, DonationStepSerializer, UserFullSerializer
 from rest_framework import generics
 from rest_framework import viewsets
+from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
-from backend.permissions import IsSuperStaff, NormalUserListRetrieveOnly, NormalUserIsCurrentUser
+from backend.permissions import NormalUserIsCurrentUser, IsAdminOrCustomerUser, NonAdminUserCanOnlyGet
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from django.shortcuts import get_object_or_404
@@ -24,7 +25,7 @@ class UserSelf(APIView):
         try:
             print(request.user)
             user = request.user
-            serializer = UserSerializer(user)
+            serializer = UserFullSerializer(user)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
@@ -47,6 +48,9 @@ class UserDetail(generics.RetrieveUpdateDestroyAPIView):
 
 
 class CustomerDetailByUser(APIView):
+    # TODO deprecated, Customer is directly returned from terminal view
+    # This should be removed
+
     user_queryset = User.objects.all()
     permission_classes = [IsAuthenticated]
 
@@ -54,7 +58,9 @@ class CustomerDetailByUser(APIView):
         user = get_object_or_404(self.user_queryset, pk=user_id)
         self.check_object_permissions(self.request, user)
 
-        serializer = CustomerSerializer(user.customer)
+        customer = user.get_terminal().customer if user.get_terminal() else None
+
+        serializer = CustomerSerializer(customer)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -62,11 +68,10 @@ class CustomerDetailByUser(APIView):
 class CustomerViewSet(viewsets.ModelViewSet):
     serializer_class = CustomerSerializer
     queryset = Customer.objects.filter(is_archived=False)
-    permission_classes = [IsAdminUser]
-
+    permission_classes = [IsAuthenticated, IsAdminUser]
 
 class ActivateCustomer(APIView):
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAuthenticated, IsAdminUser]
 
     def get(self, request, pk, format=None):
         try:
@@ -80,7 +85,7 @@ class ActivateCustomer(APIView):
 
 
 class DeactivateCustomer(APIView):
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAuthenticated, IsAdminUser]
 
     def get(self, request, pk, format=None):
         try:
@@ -95,24 +100,42 @@ class DeactivateCustomer(APIView):
 
 class CampaignViewSet(viewsets.ModelViewSet):
     serializer_class = CampaignFullSerializer
-    queryset = Campaign.objects.filter(is_archived=False)
-    permission_classes = [IsAuthenticated, NormalUserListRetrieveOnly]
+    queryset = Campaign.objects.all()
+    permission_classes = [IsAuthenticated, IsAdminOrCustomerUser, NonAdminUserCanOnlyGet]
+
+    def list(self, request, *args, **kwargs):
+        serializer = self.get_serializer(self.get_queryset().order_by("-featured", "name"), many=True, read_only=True)
+        return Response(serializer.data)
 
     def retrieve(self, request, *args, **kwargs):
-        instance = get_object_or_404(Campaign, pk=kwargs['pk'])
+        instance = get_object_or_404(self.get_queryset().filter(is_archived=False), pk=kwargs['pk'])
         serializer = self.get_serializer(instance)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def get(self, request, *args, **kwargs):
-        queryset = Campaign.objects.filter(is_archived=False)
-        serializer = CampaignSerializer(queryset, context={"request": request})
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
     def destroy(self, request, pk=None):
-        campaign = get_object_or_404(Campaign, pk=pk)
+        campaign = get_object_or_404(self.get_queryset(), pk=pk)
         campaign.is_archived = True
         campaign.terminals.clear()
         campaign.save()
+        return Response(status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated, IsAdminOrCustomerUser])
+    def toggle_featured(self, request, pk, format=None):
+        user: User = request.user
+        campaign = get_object_or_404(self.get_queryset(), pk=pk)
+
+        if user.is_staff:
+            campaign.featured = not campaign.featured
+            campaign.save()
+
+        else:
+            customer = user.get_customer()
+            if customer.featured_campaign == campaign:
+                customer.featured_campaign = None
+            else:
+                customer.featured_campaign = campaign
+            customer.save()
+
         return Response(status=status.HTTP_200_OK)
 
 class StatsByCampaign(APIView):
