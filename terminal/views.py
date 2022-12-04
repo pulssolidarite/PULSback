@@ -348,7 +348,7 @@ class PaymentFilteredViewSet(viewsets.ViewSet):
             today_start = datetime.datetime.combine(today, datetime.time())
             today_end = datetime.datetime.combine(tomorrow, datetime.time())
 
-            payments = payments.filter(date__gte=today_start, date_lt=today_end)
+            payments = payments.filter(date__gte=today_start, date__lt=today_end)
 
         elif date == "Yesterday":
             today = datetime.datetime.now().date()
@@ -357,7 +357,7 @@ class PaymentFilteredViewSet(viewsets.ViewSet):
             tomorrow_start = datetime.datetime.combine(tomorrow, datetime.time())
             tomorrow_end = datetime.datetime.combine(after_tomorrow, datetime.time())
 
-            payments = payments.filter(date__gte=tomorrow_start, date_lt=tomorrow_end)
+            payments = payments.filter(date__gte=tomorrow_start, date__lt=tomorrow_end)
 
         elif date == "7days":
             today = datetime.datetime.now().date()
@@ -366,7 +366,7 @@ class PaymentFilteredViewSet(viewsets.ViewSet):
             in_8_days = today + datetime.timedelta(8)
             in_7_days_end = datetime.datetime.combine(in_8_days, datetime.time())
 
-            payments = payments.filter(date__gte=today_start, date_lt=in_7_days_end)
+            payments = payments.filter(date__gte=today_start, date__lt=in_7_days_end)
 
         elif date == "CurrentWeek":
             today = datetime.datetime.now().date()
@@ -376,7 +376,7 @@ class PaymentFilteredViewSet(viewsets.ViewSet):
             monday_of_this_week = today.date() - datetime.timedelta(days=today.weekday())
             monday_of_this_week_start = datetime.datetime.combine(monday_of_this_week, datetime.time())
 
-            payments = payments.filter(date__gte=monday_of_this_week_start, date_lt=today_end)
+            payments = payments.filter(date__gte=monday_of_this_week_start, date__lt=today_end)
 
         elif date == "LastWeek":
             some_day_last_week = datetime.now().date() - datetime.timedelta(days=7)
@@ -386,7 +386,7 @@ class PaymentFilteredViewSet(viewsets.ViewSet):
             monday_of_this_week = today.date() - datetime.timedelta(days=today.weekday())
             monday_of_this_week_start = datetime.datetime.combine(monday_of_this_week, datetime.time())
 
-            payments = payments.filter(date__gte=monday_of_last_week_start, date_lt=monday_of_this_week_start)
+            payments = payments.filter(date__gte=monday_of_last_week_start, date__lt=monday_of_this_week_start)
 
         elif date == "CurrentMonth":
             now = datetime.datetime.now()
@@ -394,7 +394,7 @@ class PaymentFilteredViewSet(viewsets.ViewSet):
             date_on_next_month = start_month + datetime.datetime.timedelta(35)
             start_next_month = datetime.datetime(date_on_next_month.year, date_on_next_month.month, 1)
 
-            payments = payments.filter(date__gte=start_month, date_lt=start_next_month)
+            payments = payments.filter(date__gte=start_month, date__lt=start_next_month)
 
         elif date == "LastMonth":
             today = datetime.datetime.date.today()
@@ -405,7 +405,7 @@ class PaymentFilteredViewSet(viewsets.ViewSet):
             now = datetime.datetime.now()
             start_this_month = datetime.datetime(now.year, now.month, 1)
 
-            payments = payments.filter(date__gte=start_previous_month, date_lt=start_this_month)
+            payments = payments.filter(date__gte=start_previous_month, date__lt=start_this_month)
 
         elif date == "ThisYear":
             now = datetime.datetime.now()
@@ -416,7 +416,7 @@ class PaymentFilteredViewSet(viewsets.ViewSet):
             first_day_of_next_year = last_day_of_this_year + datetime.timedelta(days=1)
             first_day_of_next_year_begining = datetime.datetime.combine(first_day_of_next_year, datetime.time())
 
-            payments = payments.filter(date__gte=first_day_of_this_year_begining, date_lt=first_day_of_next_year_begining)
+            payments = payments.filter(date__gte=first_day_of_this_year_begining, date__lt=first_day_of_next_year_begining)
 
         elif date == "LastYear":
             now = datetime.datetime.now()
@@ -426,7 +426,7 @@ class PaymentFilteredViewSet(viewsets.ViewSet):
             first_day_of_this_year = now.date().replace(day=1, month=1)
             first_day_of_this_year_begining = datetime.datetime.combine(first_day_of_this_year, datetime.time())
 
-            payments = payments.filter(date__gte=first_day_of_next_year_begining, date_lt=first_day_of_this_year_begining)
+            payments = payments.filter(date__gte=first_day_of_next_year_begining, date__lt=first_day_of_this_year_begining)
 
         # Extract non skiped payments and count
 
