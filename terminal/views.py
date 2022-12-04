@@ -342,8 +342,9 @@ class PaymentFilteredViewSet(viewsets.ViewSet):
 
         # Filter by date (period)
 
+        today = datetime.date.today()
+
         if date == "Today":
-            today = datetime.datetime.now().date()
             tomorrow = today + datetime.timedelta(1)
             today_start = datetime.datetime.combine(today, datetime.time())
             today_end = datetime.datetime.combine(tomorrow, datetime.time())
@@ -351,7 +352,6 @@ class PaymentFilteredViewSet(viewsets.ViewSet):
             payments = payments.filter(date__gte=today_start, date__lt=today_end)
 
         elif date == "Yesterday":
-            today = datetime.datetime.now().date()
             tomorrow = today + datetime.timedelta(1)
             after_tomorrow = tomorrow + datetime.timedelta(1)
             tomorrow_start = datetime.datetime.combine(tomorrow, datetime.time())
@@ -360,7 +360,6 @@ class PaymentFilteredViewSet(viewsets.ViewSet):
             payments = payments.filter(date__gte=tomorrow_start, date__lt=tomorrow_end)
 
         elif date == "7days":
-            today = datetime.datetime.now().date()
             today_start = datetime.datetime.combine(today, datetime.time())
 
             in_8_days = today + datetime.timedelta(8)
@@ -369,61 +368,55 @@ class PaymentFilteredViewSet(viewsets.ViewSet):
             payments = payments.filter(date__gte=today_start, date__lt=in_7_days_end)
 
         elif date == "CurrentWeek":
-            today = datetime.datetime.now().date()
             tomorrow = today + datetime.timedelta(1)
             today_end = datetime.datetime.combine(tomorrow, datetime.time())
 
-            monday_of_this_week = today.date() - datetime.timedelta(days=today.weekday())
+            monday_of_this_week = today - datetime.timedelta(days=today.weekday())
             monday_of_this_week_start = datetime.datetime.combine(monday_of_this_week, datetime.time())
 
             payments = payments.filter(date__gte=monday_of_this_week_start, date__lt=today_end)
 
         elif date == "LastWeek":
-            some_day_last_week = datetime.now().date() - datetime.timedelta(days=7)
+            some_day_last_week = today - datetime.timedelta(days=7)
             monday_of_last_week = some_day_last_week - datetime.timedelta(days=(some_day_last_week.isocalendar()[2] - 1))
             monday_of_last_week_start = datetime.datetime.combine(monday_of_last_week, datetime.time())
             
-            monday_of_this_week = today.date() - datetime.timedelta(days=today.weekday())
+            monday_of_this_week = today - datetime.timedelta(days=today.weekday())
             monday_of_this_week_start = datetime.datetime.combine(monday_of_this_week, datetime.time())
 
             payments = payments.filter(date__gte=monday_of_last_week_start, date__lt=monday_of_this_week_start)
 
         elif date == "CurrentMonth":
-            now = datetime.datetime.now()
-            start_month = datetime.datetime(now.year, now.month, 1)
-            date_on_next_month = start_month + datetime.datetime.timedelta(35)
+            start_month = datetime.datetime(today.year, today.month, 1)
+            date_on_next_month = start_month + datetime.timedelta(35)
             start_next_month = datetime.datetime(date_on_next_month.year, date_on_next_month.month, 1)
 
             payments = payments.filter(date__gte=start_month, date__lt=start_next_month)
 
         elif date == "LastMonth":
-            today = datetime.datetime.date.today()
             first = today.replace(day=1)  # first date of current month
-            end_previous_month = first - datetime.datetime.timedelta(days=1)
+            end_previous_month = first - datetime.timedelta(days=1)
             start_previous_month = end_previous_month.replace(day=1)
 
-            now = datetime.datetime.now()
-            start_this_month = datetime.datetime(now.year, now.month, 1)
+            start_this_month = datetime.datetime(today.year, today.month, 1)
 
             payments = payments.filter(date__gte=start_previous_month, date__lt=start_this_month)
 
         elif date == "ThisYear":
-            now = datetime.datetime.now()
-            first_day_of_this_year = now.date().replace(day=1, month=1)
+            first_day_of_this_year = today.replace(day=1, month=1)
             first_day_of_this_year_begining = datetime.datetime.combine(first_day_of_this_year, datetime.time())
 
-            last_day_of_this_year = now.date().replace(day=31, month=12)
+            last_day_of_this_year = today.replace(day=31, month=12)
             first_day_of_next_year = last_day_of_this_year + datetime.timedelta(days=1)
             first_day_of_next_year_begining = datetime.datetime.combine(first_day_of_next_year, datetime.time())
 
             payments = payments.filter(date__gte=first_day_of_this_year_begining, date__lt=first_day_of_next_year_begining)
 
         elif date == "LastYear":
-            now = datetime.datetime.now()
-            first_day_of_next_year = now.date().replace(day=1, month=1, year=now.year - 1)
+            first_day_of_next_year = today.replace(day=1, month=1, year=today.year - 1)
             first_day_of_next_year_begining = datetime.datetime.combine(first_day_of_next_year, datetime.time())
 
-            first_day_of_this_year = now.date().replace(day=1, month=1)
+            first_day_of_this_year = today.replace(day=1, month=1)
             first_day_of_this_year_begining = datetime.datetime.combine(first_day_of_this_year, datetime.time())
 
             payments = payments.filter(date__gte=first_day_of_next_year_begining, date__lt=first_day_of_this_year_begining)
