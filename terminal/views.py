@@ -274,7 +274,7 @@ class PaymentFilteredViewSet(viewsets.ViewSet):
         date_start = self.request.query_params.get('date_start')
         date_end = self.request.query_params.get('date_end')
         payment_terminal = self.request.query_params.get('payment_terminal')
-        page = self.request.query_params.get("page", 1)        
+        page = self.request.query_params.get("page", None)        
 
         # Query payments (all payments if logged user is admin, only customer payments if logged user is customer)
 
@@ -443,10 +443,11 @@ class PaymentFilteredViewSet(viewsets.ViewSet):
 
         total_payment_count = payments.count()
 
-        # Order by date and paginate
+        # Paginate
 
-        paginator = Paginator(payments, 10)
-        payments_paginated_queryset = paginator.get_page(page)
+        if page:
+            paginator = Paginator(payments, 10) # 10 payments per page
+            payments = paginator.get_page(page)
 
         # Serialize filtred payments
 
@@ -456,7 +457,7 @@ class PaymentFilteredViewSet(viewsets.ViewSet):
         else:
             serializer_class = self._PaymentWithoutDonatorSerializer
 
-        serializer = serializer_class(payments_paginated_queryset, many=True)
+        serializer = serializer_class(payments, many=True)
 
         return serializer.data, amountSum, amountAvg, total_payment_count
 
