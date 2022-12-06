@@ -268,11 +268,11 @@ class PaymentFilteredViewSet(viewsets.ViewSet):
         terminal_id = self.request.query_params.get('terminal')
         customer_id = self.request.query_params.get('customer')
         donation_formula = self.request.query_params.get('donation_formula')
-        payment_status = self.request.query_params.get('status')
+        payment_status = self.request.query_params.get('payment_status')
         game_id = self.request.query_params.get('game')
         date = self.request.query_params.get('date')
-        date_start = self.request.query_params.get('date_start')
-        date_end = self.request.query_params.get('date_end')
+        date_start = self.request.query_params.get('start_date')
+        date_end = self.request.query_params.get('end_date')
         payment_terminal = self.request.query_params.get('payment_terminal')
         page = self.request.query_params.get("page", None)        
 
@@ -347,34 +347,35 @@ class PaymentFilteredViewSet(viewsets.ViewSet):
         if date == "Today":
             tomorrow = today + datetime.timedelta(1)
             today_start = datetime.datetime.combine(today, datetime.time())
-            today_end = datetime.datetime.combine(tomorrow, datetime.time())
+            tomorrow_start = datetime.datetime.combine(tomorrow, datetime.time())
 
-            payments = payments.filter(date__gte=today_start, date__lt=today_end)
+            payments = payments.filter(date__gte=today_start, date__lt=tomorrow_start)
 
         elif date == "Yesterday":
-            tomorrow = today + datetime.timedelta(1)
-            after_tomorrow = tomorrow + datetime.timedelta(1)
-            tomorrow_start = datetime.datetime.combine(tomorrow, datetime.time())
-            tomorrow_end = datetime.datetime.combine(after_tomorrow, datetime.time())
+            today_start = datetime.datetime.combine(today, datetime.time())
+            
+            yesterday = today + datetime.timedelta(-1)
+            yesterday_start = datetime.datetime.combine(yesterday, datetime.time())
 
-            payments = payments.filter(date__gte=tomorrow_start, date__lt=tomorrow_end)
+            payments = payments.filter(date__gte=yesterday_start, date__lt=today_start)
 
         elif date == "7days":
-            today_start = datetime.datetime.combine(today, datetime.time())
+            tomorrow = today + datetime.timedelta(1)
+            tomorrow_start = datetime.datetime.combine(tomorrow, datetime.time())
 
-            in_8_days = today + datetime.timedelta(8)
-            in_7_days_end = datetime.datetime.combine(in_8_days, datetime.time())
+            seven_days_ago = today + datetime.timedelta(-7)
+            seven_days_ago_start = datetime.datetime.combine(seven_days_ago, datetime.time())
 
-            payments = payments.filter(date__gte=today_start, date__lt=in_7_days_end)
+            payments = payments.filter(date__gte=seven_days_ago_start, date__lt=tomorrow_start)
 
         elif date == "CurrentWeek":
             tomorrow = today + datetime.timedelta(1)
-            today_end = datetime.datetime.combine(tomorrow, datetime.time())
+            tomorrow_start = datetime.datetime.combine(tomorrow, datetime.time())
 
             monday_of_this_week = today - datetime.timedelta(days=today.weekday())
             monday_of_this_week_start = datetime.datetime.combine(monday_of_this_week, datetime.time())
 
-            payments = payments.filter(date__gte=monday_of_this_week_start, date__lt=today_end)
+            payments = payments.filter(date__gte=monday_of_this_week_start, date__lt=tomorrow_start)
 
         elif date == "LastWeek":
             some_day_last_week = today - datetime.timedelta(days=7)
