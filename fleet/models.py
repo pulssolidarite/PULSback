@@ -3,6 +3,7 @@ import datetime
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.conf import settings
+from django.utils.translation import gettext_lazy as _
 
 from game.models import Game
 
@@ -19,6 +20,21 @@ class User(AbstractUser):
     # Referenced my Terminal model with related name 'terminal'
     # Referenced my Customer model with related name 'customer'
     # Referenced my Campaign model with related name 'campaigns'
+
+    is_staff = models.BooleanField(
+        _('Admin'),
+        default=False,
+        help_text=_('Can this user log into the Admin space and the Django backoffice'),
+    )
+
+    is_superuser = models.BooleanField(
+        _('Superadmin'),
+        default=False,
+        help_text=_(
+            'Designates that this admin has all the permissions in the django backoffice without '
+            'explicitly assigning them.'
+        ),
+    )
 
     def __str__(self):
         return self.username
