@@ -247,8 +247,10 @@ class PaymentFilteredViewSet(viewsets.ViewSet):
             model = Payment
             fields = ("id", "date", "status", "donator", "terminal", "campaign", "game", "amount",)
 
-    def _get_data(self, request):
+    def _get_filtred_payments(self, request):
         """
+        Return a queryset of Payment objects
+
         Possible query params :
         - campaign
         - terminal
@@ -273,8 +275,7 @@ class PaymentFilteredViewSet(viewsets.ViewSet):
         date = self.request.query_params.get('date')
         date_start = self.request.query_params.get('start_date')
         date_end = self.request.query_params.get('end_date')
-        payment_terminal = self.request.query_params.get('payment_terminal')
-        page = self.request.query_params.get("page", None)        
+        payment_terminal = self.request.query_params.get('payment_terminal')  
 
         # Query payments (all payments if logged user is admin, only customer payments if logged user is customer)
 
@@ -422,6 +423,11 @@ class PaymentFilteredViewSet(viewsets.ViewSet):
 
             payments = payments.filter(date__gte=first_day_of_next_year_begining, date__lt=first_day_of_this_year_begining)
 
+        return payments.order_by("-date")
+
+    def list(self, request):
+        payments = self._get_filtred_payments(request)
+
         # Extract non skiped payments and count
 
         not_skiped_payments = payments.exclude(status="Skiped")
@@ -438,7 +444,8 @@ class PaymentFilteredViewSet(viewsets.ViewSet):
         total_payment_count = payments.count()
 
         # Paginate
-
+        
+        page = self.request.query_params.get("page", None)
         if page:
             paginator = Paginator(payments, 10) # 10 payments per page
             payments = paginator.get_page(page)
@@ -446,6 +453,8 @@ class PaymentFilteredViewSet(viewsets.ViewSet):
         # Serialize filtred payments
 
         serializer_class = None
+        user: User = request.user
+        
         if user.is_staff or (user.is_customer_user() and user.get_customer().can_see_donators):
             serializer_class = self._PaymentWithDonatorSerializer
         else:
@@ -453,15 +462,9 @@ class PaymentFilteredViewSet(viewsets.ViewSet):
 
         serializer = serializer_class(payments, many=True)
 
-        return serializer.data, amountSum, amountAvg, total_payment_count
-
-
-    def list(self, request):
-        payments_data, amountSum, amountAvg, total_payment_count = self._get_data(request)
-
         return Response(
             {
-                'payments': payments_data,
+                'payments': serializer.data,
                 'amount_sum': amountSum,
                 'amount_avg': amountAvg,
                 'total_number_of_payments': total_payment_count,
@@ -471,7 +474,7 @@ class PaymentFilteredViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['get'])
     def to_csv(self, request):
-        payments_data, _, _, _ = self._get_data(request)
+        payments = self._get_filtred_payments(request)
 
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename="export.csv"'
@@ -479,22 +482,22 @@ class PaymentFilteredViewSet(viewsets.ViewSet):
         writer = csv.DictWriter(response, fieldnames=['Id', 'Date',  'Transaction', 'Email donateur', 'Accord newsletter', 'Accord asso', 'Campagne', 'Terminal', 'Client', 'TPE', 'Montant en €','Jeu', 'Formule de dons'])
         writer.writeheader()
 
-        for payment in payments_data:
+        for payment in payments.all():
             writer.writerow(
                 {
-                    'Id': payment['id'], 
-                    'Date': payment['date'].replace('-','/'),
-                    'Transaction': payment['status'],
-                    'Email donateur': payment['donator']["email"] if payment.get("donator") and payment['donator'].get("email") else ' ',
-                    'Accord newsletter': "Oui" if payment.get("donator") and payment['donator'].get("accept_newsletter") and payment['donator']["accept_newsletter"] == True else "Non" if payment.get("donator") and payment['donator'].get("accept_newsletter") and payment['donator']["accept_newsletter"] == False else " " ,
-                    'Accord asso': "Oui" if payment.get("donator") and payment['donator'].get("accept_asso") and payment['donator']["accept_asso"] == True else "Non" if payment.get("donator") and payment['donator'].get("accept_asso") and payment['donator']["accept_asso"] == False else " " ,
-                    'Campagne': payment['campaign']['name'],
-                    'Terminal': payment['terminal']['name'],
-                    'Client': payment['terminal']['customer']['company'],
-                    'TPE': payment['terminal']['payment_terminal'],
-                    'Montant en €': payment['amount'],
-                    'Jeu': payment['game']['name'],
-                    'Formule de dons': payment['terminal']['donation_formula'],
+                    'Id': payment.id, 
+                    'Date': payment.date.strftime("%m/%d/%Y, %H:%M:%S"),
+                    'Transaction': payment.status,
+                    'Email donateur': payment.donator.email if payment.donator and payment.donator.email else ' ',
+                    'Accord newsletter': "Oui" if payment.donator and payment.donator.accept_newsletter and payment.donator.accept_newsletter == True else "Non" if payment.donator and payment.donator.accept_newsletter and payment.donator.accept_newsletter == False else " " ,
+                    'Accord asso': "Oui" if payment.donator and payment.donator.accept_asso and payment.donator.accept_asso == True else "Non" if payment.donator and payment.donator.accept_asso and payment.donator.accept_asso == False else " " ,
+                    'Campagne': payment.campaign.name,
+                    'Terminal': payment.terminal.name,
+                    'Client': payment.terminal.customer.company,
+                    'TPE': payment.terminal.payment_terminal,
+                    'Montant en €': payment.amount,
+                    'Jeu': payment.game.name if payment.game else "",
+                    'Formule de dons': payment.donation_formula if payment.donation_formula else ""
                 }
             )
         return response
