@@ -478,10 +478,6 @@ class PaymentFilteredViewSet(viewsets.ViewSet):
         amount_donated = not_skiped_payments.aggregate(Sum('amount_donated'))['amount__sum']
         amount_for_owner = payments_total_amount_excluding_skiped - amount_donated
 
-        if (amountAvg ): amountAvg = round(amountAvg,2)
-        if (amountSum is None ): amountSum = 0
-        if (amountAvg is None): amountAvg = 0.0
-
         # Count total payments
 
         total_payment_count = payments.count()
@@ -508,8 +504,10 @@ class PaymentFilteredViewSet(viewsets.ViewSet):
         return Response(
             {
                 'payments': serializer.data,
-                'amount_sum': amountSum,
-                'amount_avg': amountAvg,
+                'payments_total_amount_excluding_skiped': payments_total_amount_excluding_skiped,
+                'payments_average_amount_excluding_skiped': payments_average_amount_excluding_skiped,
+                "amount_donated": amount_donated,
+                "amount_for_owner": amount_for_owner,
                 'total_number_of_payments': total_payment_count,
             },
             status=status.HTTP_200_OK,
