@@ -85,7 +85,7 @@ class ScreenSaverBroadcastViewSet(viewsets.ModelViewSet):
 
             elif user.is_staff:
                 # Allow staff member to fetch, post, put or delete media only if this media belong to a staff member or if this media is public
-                return obj.media.scope == obj.PUBLIC_SCOPE or obj.media.owner.is_staff
+                return obj.media.scope == ScreensaverMedia.PUBLIC_SCOPE or obj.media.owner.is_staff
 
             else:
                 raise PermissionDenied()
