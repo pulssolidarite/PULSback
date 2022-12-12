@@ -5,12 +5,11 @@ import os
 import sys
 
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
-from django.db.models import Avg, Sum
+from django.db.models import Avg, Sum, Q
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
 from django.conf import settings
 from django.core.paginator import Paginator
-
 
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework import status, viewsets
@@ -255,7 +254,13 @@ class PaymentFilteredViewSet(viewsets.ViewSet):
             customer = _CustomerSerializer(many=False, read_only=True)
             class Meta:
                 model = Terminal
-                fields = ("id", "name", "customer", "payment_terminal", "donation_formula",)
+                fields = (
+                    "id",
+                    "name",
+                    "customer",
+                    "payment_terminal",
+                    "donation_formula",
+                )
 
         class _CampaignSerializer(serializers.ModelSerializer):
             class Meta:
@@ -273,7 +278,17 @@ class PaymentFilteredViewSet(viewsets.ViewSet):
 
         class Meta:
             model = Payment
-            fields = ("id", "date", "status", "terminal", "campaign", "game", "amount",)
+            fields = (
+                "id",
+                "date",
+                "status",
+                "terminal",
+                "campaign",
+                "game",
+                "amount",
+                "payment_terminal",
+                "donation_formula",
+            )
 
     class _PaymentWithDonatorSerializer(_PaymentWithoutDonatorSerializer):
 
@@ -286,7 +301,18 @@ class PaymentFilteredViewSet(viewsets.ViewSet):
 
         class Meta:
             model = Payment
-            fields = ("id", "date", "status", "donator", "terminal", "campaign", "game", "amount",)
+            fields = (
+                "id",
+                "date",
+                "status",
+                "donator",
+                "terminal",
+                "campaign",
+                "game",
+                "amount",
+                "payment_terminal",
+                "donation_formula",
+            )
 
     def _get_filtred_payments(self, request):
         """
@@ -301,8 +327,8 @@ class PaymentFilteredViewSet(viewsets.ViewSet):
         - date
         - date_start
         - date_end
-        - payment_terminal
-        - donation_formula
+        - tpe
+        - formula
         """
 
         # Fetch params
@@ -310,13 +336,13 @@ class PaymentFilteredViewSet(viewsets.ViewSet):
         campaign_id = self.request.query_params.get('campaign')
         terminal_id = self.request.query_params.get('terminal')
         customer_id = self.request.query_params.get('customer')
-        donation_formula = self.request.query_params.get('donation_formula')
+        donation_formula = self.request.query_params.get('formula')
         payment_status = self.request.query_params.get('payment_status')
         game_id = self.request.query_params.get('game')
         date = self.request.query_params.get('date')
         date_start = self.request.query_params.get('start_date')
         date_end = self.request.query_params.get('end_date')
-        payment_terminal = self.request.query_params.get('payment_terminal')  
+        payment_terminal = self.request.query_params.get('tpe')  
 
         # Query payments (all payments if logged user is admin, only customer payments if logged user is customer)
 
@@ -361,12 +387,14 @@ class PaymentFilteredViewSet(viewsets.ViewSet):
         # Filter by donation_formula
 
         if donation_formula:
-            payments = payments.filter(donation_formula=donation_formula)
+            payments = payments.filter(Q(donation_formula=donation_formula) | Q(donation_formula=None, terminal__donation_formula=donation_formula)) # TODO remove and reactivate following line
+            #payments = payments.filter(donation_formula=donation_formula)
 
         # Filter by payment_terminal
 
         if payment_terminal:
-            payments = payments.filter(payment_terminal=payment_terminal)
+            payments = payments.filter(Q(payment_terminal=payment_terminal) | Q(payment_terminal=None, terminal__payment_terminal=payment_terminal)) # TODO remove and reactivate following line
+            # payments = payments.filter(payment_terminal=payment_terminal)
 
         # Filter by date_start
 
@@ -476,7 +504,12 @@ class PaymentFilteredViewSet(viewsets.ViewSet):
         payments_total_amount_excluding_skiped = not_skiped_payments.aggregate(Sum('amount'))['amount__sum']
         payments_average_amount_excluding_skiped = not_skiped_payments.aggregate(Avg('amount'))['amount__avg']
 
-        payments_average_amount_excluding_skiped = round(payments_average_amount_excluding_skiped, 2)
+        if (payments_total_amount_excluding_skiped is None ): payments_total_amount_excluding_skiped = 0
+
+        if payments_average_amount_excluding_skiped is None:
+            payments_average_amount_excluding_skiped = 0
+        else:
+            payments_average_amount_excluding_skiped = round(payments_average_amount_excluding_skiped, 2)
 
         total_amount_donated = 0
         for payment in payments.all():
