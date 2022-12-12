@@ -1,8 +1,10 @@
 from django.db import models
-from django.conf import settings
-from fleet.models import Campaign, Customer
 from django.db.models import Avg, Sum
+from django.conf import settings
+from django.core.validators import MaxValueValidator, MinValueValidator
+
 from game.models import Game
+from fleet.models import Campaign, Customer
 
 
 class Terminal(models.Model):
@@ -114,7 +116,13 @@ class Payment(models.Model):
     currency = models.CharField(max_length=255)
     payment_terminal = models.CharField(max_length=250, null=True) # TODO add choices and set non nullable
     donation_formula = models.CharField(max_length=250, null=True) # Classique, Gratuit, Mécénat, Partage # TODO add choices and set non nullable
-    donation_share = models.IntegerField(default=50) # How much per cent of the donation go to the owner of the terminal (only if donation_formula == 'Partage')
+    donation_share = models.IntegerField(
+        default=50,
+        validators=[
+            MaxValueValidator(50),
+            MinValueValidator(0),
+        ],
+    ) # How much per cent of the donation go to the owner of the terminal (only if donation_formula == 'Partage')
 
     # Save terminal donation formula and payment terminal in payment
     # In case the terminal donation formula or the payment terminal change in the futur,
