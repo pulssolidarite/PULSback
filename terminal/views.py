@@ -524,8 +524,9 @@ class PaymentFilteredViewSet(viewsets.ViewSet):
         # Paginate
         
         page = self.request.query_params.get("page", None)
+        limit = self.request.query_params.get("limit", 10)
         if page:
-            paginator = Paginator(payments, 10) # 10 payments per page
+            paginator = Paginator(payments, limit) # 10 payments per page
             payments = paginator.get_page(page)
 
         # Serialize filtred payments
