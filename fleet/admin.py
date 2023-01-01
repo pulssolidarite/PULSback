@@ -82,7 +82,6 @@ class UserAdmin(DjangoUserAdmin):
             return None
 
     _type.short_description = _("Type")
-    _type.boolean = True
 
 
 admin.site.register(Customer)
