@@ -1,6 +1,6 @@
 from rest_framework import serializers
-from fleet.models import Campaign
-from terminal.models import Payment, Game
+from fleet.models import Campaign, Game
+from terminal.models import Payment
 from django.db.models import Sum
 
 

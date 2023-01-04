@@ -19,12 +19,12 @@ from rest_framework.decorators import action
 
 from game.models import Game
 
-from fleet.models import Customer, User
+from fleet.models import Customer, User, Campaign
 from fleet.serializers import CustomerSerializer, CampaignSerializer
 
 from backend.permissions import IsAdminOrCustomerUser
 
-from .models import Terminal, Donator, Session, Payment, Campaign
+from .models import Terminal, Donator, Session, Payment
 from .serializers import *
 
 
