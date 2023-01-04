@@ -1,9 +1,11 @@
 from django.db import models
 from django.db.models import Avg, Sum
 from django.conf import settings
+from django.core.validators import MaxValueValidator, MinValueValidator
 
 from game.models import Game
 from fleet.models import Campaign, Customer
+from backend.common import DONATION_FORMULAS
 
 from .payment import Payment
 from .session import Session
@@ -33,10 +35,14 @@ class Terminal(models.Model):
     donation_default_amount = models.IntegerField(default=1)
     donation_max_amount = models.IntegerField(default=50)
     donation_formula = models.CharField(
-        max_length=250, null=True
-    )  # Classique, Gratuit, Mécénat, Partage
+        max_length=250, null=True, choices=DONATION_FORMULAS
+    )  # TODO set non nullable
     donation_share = models.IntegerField(
-        default=50
+        default=50,
+        validators=[
+            MaxValueValidator(50),
+            MinValueValidator(0),
+        ],
     )  # How much per cent of the donation go to the owner of the terminal (only if donation_formula == 'Partage')
 
     @property
