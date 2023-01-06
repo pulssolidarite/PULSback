@@ -8,7 +8,7 @@ from .donator import Donator
 
 class Session(models.Model):
     donator = models.ForeignKey(
-        Donator, on_delete=models.PROTECT, related_name="sessions"
+        Donator, on_delete=models.PROTECT, related_name="sessions", null=True, blank=True,
     )
     campaign = models.ForeignKey(
         Campaign, on_delete=models.PROTECT, related_name="sessions"
