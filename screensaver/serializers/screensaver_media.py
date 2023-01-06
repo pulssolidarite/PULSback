@@ -3,6 +3,7 @@ from fleet.models import User
 
 from screensaver.models import ScreensaverMedia
 
+
 class UserSerializer(serializers.ModelSerializer):
     """
     Serialize User but only contact info, no sensitive info
@@ -10,11 +11,17 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('username', 'first_name', 'last_name', 'email',)
+        fields = (
+            "username",
+            "first_name",
+            "last_name",
+            "email",
+        )
+
 
 class ScreenSaverMediaSerializer(serializers.ModelSerializer):
     owner = UserSerializer(read_only=True)
-    nb_terminals = serializers.ReadOnlyField() # Property on model ScreensaverMedia
+    nb_terminals = serializers.ReadOnlyField()  # Property on model ScreensaverMedia
 
     class Meta:
         model = ScreensaverMedia
@@ -23,13 +30,12 @@ class ScreenSaverMediaSerializer(serializers.ModelSerializer):
             "title",
             "scope",
             "owner",
-            "youtube_video_id",
+            "vimeo_video_id",
             "nb_terminals",
         )
 
-
     def create(self, validated_data):
-        user: User =  self.context['request'].user
+        user: User = self.context["request"].user
 
         assert user.is_staff or user.is_customer_user()
 
