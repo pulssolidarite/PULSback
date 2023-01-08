@@ -660,6 +660,7 @@ class PaymentFilteredViewSet(viewsets.ViewSet):
         payments_total_amount_excluding_skiped = not_skiped_payments.aggregate(
             Sum("amount")
         )["amount__sum"]
+
         payments_average_amount_excluding_skiped = not_skiped_payments.aggregate(
             Avg("amount")
         )["amount__avg"]
@@ -676,7 +677,9 @@ class PaymentFilteredViewSet(viewsets.ViewSet):
 
         total_amount_donated = 0
         for payment in payments.all():
-            total_amount_donated = total_amount_donated + payment.amount_donated
+            total_amount_donated = (
+                total_amount_donated + payment.get_amount_donated_for_old_payments()
+            )
 
         total_amount_for_owner = (
             payments_total_amount_excluding_skiped - total_amount_donated
