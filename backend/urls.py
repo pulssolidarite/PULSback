@@ -50,7 +50,6 @@ urlpatterns = [
     path('donator/email/<str:email>/', DonatorByEmail.as_view()),
     path('customer/<int:pk>/activate/', ActivateCustomer.as_view()),
     path('customer/<int:pk>/deactivate/', DeactivateCustomer.as_view()),
-    path('customer/user/<int:user_id>/', CustomerDetailByUser.as_view()),
     path('terminal/mine/', TerminalByOwner.as_view()),
     path('terminal/mine/on/', TurnOnTerminal.as_view()),
     path('terminal/mine/off/', TurnOffTerminal.as_view()),
