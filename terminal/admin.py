@@ -99,8 +99,6 @@ class TerminalAdmin(admin.ModelAdmin):
         ),
     )
 
-    readonly_fields = ("date",)
-
 
 @admin.register(Payment)
 class PaymentAdmin(admin.ModelAdmin):
