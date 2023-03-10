@@ -24,8 +24,10 @@ from fleet.serializers import CustomerSerializer, CampaignSerializer
 
 from backend.permissions import IsAdminOrCustomerUser
 
-from .models import Terminal, Donator, Session, Payment
-from .serializers import *
+from terminal.models import Terminal, Donator, Session, Payment
+from terminal.serializers import *
+
+from .my_terminal import MyTerminalViewSet
 
 
 # Terminal Model
@@ -792,7 +794,7 @@ class PaymentFilteredViewSet(viewsets.ViewSet):
 
 
 class TerminalByOwner(APIView):
-    # TODO protect
+    # TODO deprecated, use MyTerminalViewSet
     permission_classes = [IsAuthenticated]
 
     def get(self, request, format=None):
@@ -823,7 +825,7 @@ class TerminalByOwner(APIView):
 
 
 class TurnOnTerminal(APIView):
-    # TODO protect
+    # TODO deprecated, use MyTerminalViewSet
     permission_classes = [IsAuthenticated]
 
     def get(self, request, format=None):
@@ -837,8 +839,9 @@ class TurnOnTerminal(APIView):
             return Response(status=status.HTTP_404_NOT_FOUND)
 
 
+
 class TurnOffTerminal(APIView):
-    # TODO protect
+    # TODO deprecated, use MyTerminalViewSet
     permission_classes = [IsAuthenticated]
 
     def get(self, request, format=None):
@@ -854,6 +857,7 @@ class TurnOffTerminal(APIView):
 
 
 class PlayingOnTerminal(APIView):
+    # TODO deprecated, use MyTerminalViewSet
     permission_classes = [IsAuthenticated]
 
     def get(self, request, format=None):
@@ -868,6 +872,7 @@ class PlayingOnTerminal(APIView):
 
 
 class PlayingOffTerminal(APIView):
+    # TODO deprecated, use MyTerminalViewSet
     permission_classes = [IsAuthenticated]
 
     def get(self, request, format=None):
