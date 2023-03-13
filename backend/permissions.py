@@ -48,13 +48,14 @@ class IsSuperStaff(permissions.BasePermission):
             return False
 
 
-class TerminalIsAuthenticated(permissions.IsAuthenticated):
+class TerminalIsAuthenticated(permissions.BasePermission):
     """
     Global permission check for terminal user
     """
 
     def has_permission(self, request, view):
-        return (
-            super(permissions.IsAuthenticated).has_permission(request, view)
+        return bool(
+            request.user
+            and request.user.is_authenticated
             and request.user.is_terminal_user()
         )
