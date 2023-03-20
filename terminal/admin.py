@@ -3,9 +3,101 @@ from django.contrib import admin
 from .models import Terminal, Donator, Session, Payment
 
 # Register your models here.
-admin.site.register(Terminal)
 admin.site.register(Donator)
 admin.site.register(Session)
+
+
+@admin.register(Terminal)
+class TerminalAdmin(admin.ModelAdmin):
+
+    # List view
+
+    list_display = (
+        "name",
+        "owner",
+        "customer",
+        "is_active",
+        "is_on",
+        "is_playing",
+        "is_archived",
+        "donation_formula",
+    )
+
+    list_filter = (
+        "name",
+        "owner",
+        "customer",
+        "donation_formula",
+    )
+
+    search_fields = ("customer",)
+
+    ordering = ("customer",)
+
+    # Form view
+
+    fieldsets = (
+        (
+            None,
+            {
+                "fields": (
+                    "name",
+                    "customer",
+                    "location",
+                ),
+            },
+        ),
+        (
+            "Compte de connexion",
+            {
+                "fields": ("owner",),
+            },
+        ),
+        (
+            "Etat",
+            {
+                "fields": (
+                    "is_active",
+                    "is_on",
+                    "is_playing",
+                    "is_archived",
+                ),
+            },
+        ),
+        (
+            "Paramétrage général",
+            {
+                "fields": (
+                    "play_timer",
+                    "free_mode_text",
+                    "payment_terminal",
+                ),
+            },
+        ),
+        (
+            "Paramétrage des donations",
+            {
+                "fields": (
+                    "donation_formula",
+                    "donation_share",
+                    "donation_min_amount",
+                    "donation_default_amount",
+                    "donation_max_amount",
+                ),
+            },
+        ),
+        (
+            "Paramétrage du contenu",
+            {
+                "fields": (
+                    (
+                        "campaigns",
+                        "games",
+                    ),
+                )
+            },
+        ),
+    )
 
 
 @admin.register(Payment)

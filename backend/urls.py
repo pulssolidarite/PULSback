@@ -28,44 +28,47 @@ from game.views import GameViewSet
 
 
 router = DefaultRouter()
-router.register(r'customer', CustomerViewSet)
-router.register(r'campaign', CampaignViewSet)
-router.register(r'terminal', TerminalViewSet)
-router.register(r'donator', DonatorViewSet)
-router.register(r'games', GameViewSet)
-router.register(r'session', SessionViewSet)
-router.register(r'payment/filtered', PaymentFilteredViewSet, basename="filtered_payments")
-router.register(r'payment', PaymentViewSet)
-router.register(r'screensaver-medias', ScreenSaverMediaViewSet)
-router.register(r'screensaver-broadcasts', ScreenSaverBroadcastViewSet)
+router.register(r"customer", CustomerViewSet)
+router.register(r"campaign", CampaignViewSet)
+router.register(r"terminal", TerminalViewSet)
+router.register(r"my-terminal", MyTerminalViewSet, basename="my_terminal")
+router.register(r"donator", DonatorViewSet)
+router.register(r"games", GameViewSet)
+router.register(r"session", SessionViewSet)
+router.register(
+    r"payment/filtered", PaymentFilteredViewSet, basename="filtered_payments"
+)
+router.register(r"payment", PaymentViewSet)
+router.register(r"screensaver-medias", ScreenSaverMediaViewSet)
+router.register(r"screensaver-broadcasts", ScreenSaverBroadcastViewSet)
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('api-auth', include('rest_framework.urls')),
-    path('auth/token/', TokenObtainPairView.as_view()),
-    path('auth/token/refresh/', TokenRefreshView.as_view()),
-    path('auth/self/', UserSelf.as_view()),
-    path('user/', UserList.as_view()),
-    path('user/<int:pk>/', UserDetail.as_view()),
-    path('donator/email/<str:email>/', DonatorByEmail.as_view()),
-    path('customer/<int:pk>/activate/', ActivateCustomer.as_view()),
-    path('customer/<int:pk>/deactivate/', DeactivateCustomer.as_view()),
-    path('terminal/mine/', TerminalByOwner.as_view()),
-    path('terminal/mine/on/', TurnOnTerminal.as_view()),
-    path('terminal/mine/off/', TurnOffTerminal.as_view()),
-    path('terminal/mine/play/', PlayingOnTerminal.as_view()),
-    path('terminal/mine/gameover/', PlayingOffTerminal.as_view()),
-    path('terminal/<int:terminal>/stats/', StatsByTerminal.as_view()),
-    path('session/terminal/<int:terminal>/avg/', AvgSessionByTerminal.as_view()),
-    path('campaign/<int:id>/stats/', StatsByCampaign.as_view()),
-    path('campaign/<int:id>/full/', StatsByCampaign.as_view()),
-    path('campaigns/full/', StatsByCampaign.as_view()),
-    path('donationstep/<int:pk>/', UpdateDonationStep.as_view()),
-    path('donationstep/', CreateDonationStep.as_view()),
-    path('donationstep/<int:pk>/delete/', DeleteDonationStep.as_view()),
-    path('game/', include("game.urls")),
-    path('dashboard/', DashboardStats.as_view()),
-    path('payment/SelectItems/', FilterSelectItems.as_view()),
+    path("admin/", admin.site.urls),
+    path("api-auth", include("rest_framework.urls")),
+    path("auth/token/", TokenObtainPairView.as_view()),
+    path("auth/token/refresh/", TokenRefreshView.as_view()),
+    path("auth/self/", UserSelf.as_view()),
+    path("user/", UserList.as_view()),
+    path("user/<int:pk>/", UserDetail.as_view()),
+    path("donator/email/<str:email>/", DonatorByEmail.as_view()),
+    path("customer/<int:pk>/activate/", ActivateCustomer.as_view()),
+    path("customer/<int:pk>/deactivate/", DeactivateCustomer.as_view()),
+    path("terminal/mine/", TerminalByOwner.as_view()),
+    path("terminal/mine/on/", TurnOnTerminal.as_view()),
+    path("terminal/mine/off/", TurnOffTerminal.as_view()),
+    path("terminal/mine/play/", PlayingOnTerminal.as_view()),
+    path("terminal/mine/gameover/", PlayingOffTerminal.as_view()),
+    path("terminal/<int:terminal>/stats/", StatsByTerminal.as_view()),
+    path("session/terminal/<int:terminal>/avg/", AvgSessionByTerminal.as_view()),
+    path("campaign/<int:id>/stats/", StatsByCampaign.as_view()),
+    path("campaign/<int:id>/full/", StatsByCampaign.as_view()),
+    path("campaigns/full/", StatsByCampaign.as_view()),
+    path("donationstep/<int:pk>/", UpdateDonationStep.as_view()),
+    path("donationstep/", CreateDonationStep.as_view()),
+    path("donationstep/<int:pk>/delete/", DeleteDonationStep.as_view()),
+    path("game/", include("game.urls")),
+    path("dashboard/", DashboardStats.as_view()),
+    path("payment/SelectItems/", FilterSelectItems.as_view()),
 ]
 
 urlpatterns += router.urls
