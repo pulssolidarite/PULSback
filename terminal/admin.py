@@ -21,7 +21,27 @@ class TerminalAdmin(admin.ModelAdmin):
         "is_playing",
         "is_archived",
         "donation_formula",
+        "version",
+        "_check_for_updates",
     )
+
+    def _check_for_updates(self, terminal):
+        return terminal.check_for_updates
+
+    _check_for_updates.short_description = "Vérification des mises à jours demandée"
+    _check_for_updates.boolean = True
+
+    actions = [
+        "_request_check_for_updates",
+    ]
+
+    def _request_check_for_updates(self, request, queryset):
+
+        for terminal in queryset:
+            terminal.check_for_updates = True
+            terminal.save()
+
+    _request_check_for_updates.short_description = "Vérifier les mises à jours"
 
     list_filter = (
         "name",

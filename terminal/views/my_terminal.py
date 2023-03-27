@@ -60,13 +60,23 @@ class MyTerminalViewSet(GenericViewSet):
     @action(detail=False, methods=["post"])
     def is_running(self, request):
         try:
-            terminal = Terminal.objects.get(owner=request.user.id)
+            terminal: Terminal = Terminal.objects.get(owner=request.user.id)
 
             if not terminal.is_on:
                 terminal.is_on = True
-                terminal.save()
 
-            return Response()
+            terminal.version = request.query_params.get("version")
+
+            check_for_updates_required = terminal.check_for_updates
+            terminal.check_for_updates = False
+
+            terminal.save()
+
+            return Response(
+                {
+                    "check_for_updates": check_for_updates_required,
+                }
+            )
 
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
