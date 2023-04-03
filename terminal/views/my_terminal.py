@@ -65,7 +65,7 @@ class MyTerminalViewSet(GenericViewSet):
             if not terminal.is_on:
                 terminal.is_on = True
 
-            terminal.version = request.query_params.get("version")
+            terminal.version = request.data.get("version")
 
             check_for_updates_required = terminal.check_for_updates
             terminal.check_for_updates = False
