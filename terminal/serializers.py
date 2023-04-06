@@ -94,6 +94,7 @@ class LightTerminalSerializer(serializers.ModelSerializer):
         read_only=True,
         source="visible_screensaver_broadcasts",
     )
+    customer = CustomerSerializer(read_only=True)
 
     class Meta:
         model = Terminal
