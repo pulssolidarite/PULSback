@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from screensaver.serializers.screensaver_broadcast import ScreenSaverBroadcastSerializer
 
-from fleet.models import Campaign
+from fleet.models import Campaign, Customer
 from fleet.serializers import (
     CampaignSerializer,
     UserSerializerWithCustomer,
@@ -94,6 +94,13 @@ class LightTerminalSerializer(serializers.ModelSerializer):
         read_only=True,
         source="visible_screensaver_broadcasts",
     )
+
+    class _CustomerSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = Customer
+            fields = "company"
+
+    customer = _CustomerSerializer(read_only=True)
 
     class Meta:
         model = Terminal

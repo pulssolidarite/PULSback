@@ -74,9 +74,9 @@ class TerminalViewSet(viewsets.ModelViewSet):
         )
         return Response(serializer.data)
 
-    @action(detail=True, methods=["get"])
+    @action(detail=True, methods=["get", "post"])
     def activate(self, request, pk, format=None):
-        terminal = get_object_or_404(self.get_queryset(), pk=pk)
+        terminal: Terminal = get_object_or_404(self.get_queryset(), pk=pk)
         terminal.is_active = True
         terminal.owner.is_active = True
         terminal.save()
@@ -84,9 +84,9 @@ class TerminalViewSet(viewsets.ModelViewSet):
         serializer = FullTerminalSerializer(terminal)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=["get"])
+    @action(detail=True, methods=["get", "post"])
     def deactivate(self, request, pk, format=None):
-        terminal = get_object_or_404(self.get_queryset(), pk=pk)
+        terminal: Terminal = get_object_or_404(self.get_queryset(), pk=pk)
         terminal.is_active = False
         terminal.owner.is_active = False
         terminal.is_on = False
@@ -96,10 +96,9 @@ class TerminalViewSet(viewsets.ModelViewSet):
         serializer = FullTerminalSerializer(terminal)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=["get"])
+    @action(detail=True, methods=["get", "post"])
     def archive(self, request, pk, format=None):
-        terminal = get_object_or_404(self.get_queryset(), pk=pk)
-        terminal = Terminal.objects.get(pk=pk)
+        terminal: Terminal = get_object_or_404(self.get_queryset(), pk=pk)
         terminal.is_active = False
         terminal.owner.is_active = False
         terminal.is_archived = True
@@ -108,9 +107,17 @@ class TerminalViewSet(viewsets.ModelViewSet):
         serializer = FullTerminalSerializer(terminal)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @action(detail=True, methods=["post"])
+    def check_for_updates(self, request, pk, format=None):
+        terminal: Terminal = get_object_or_404(self.get_queryset(), pk=pk)
+        terminal.check_for_updates = True
+        terminal.save()
+        serializer = FullTerminalSerializer(terminal)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
     @action(detail=True, methods=["get"])
     def campaigns(self, request, pk, format=None):
-        terminal = get_object_or_404(self.get_queryset(), pk=pk)
+        terminal: Terminal = get_object_or_404(self.get_queryset(), pk=pk)
         campaigns = terminal.campains
         serializer = CampaignSerializer(
             campaigns, many=True, context={"request": request}
@@ -119,7 +126,7 @@ class TerminalViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["get"])
     def games(self, request, pk, format=None):
-        terminal = get_object_or_404(self.get_queryset(), pk=pk)
+        terminal: Terminal = get_object_or_404(self.get_queryset(), pk=pk)
         games = terminal.games
         games = GameSerializer(games, many=True, context={"request": request})
         return Response(games.data, status=status.HTTP_200_OK)
@@ -837,7 +844,6 @@ class TurnOnTerminal(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
-
 
 
 class TurnOffTerminal(APIView):

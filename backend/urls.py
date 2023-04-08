@@ -30,7 +30,8 @@ from game.views import GameViewSet
 router = DefaultRouter()
 router.register(r"customer", CustomerViewSet)
 router.register(r"campaign", CampaignViewSet)
-router.register(r"terminal", TerminalViewSet)
+router.register(r"terminal", TerminalViewSet)  # TODO remove
+router.register(r"terminals", TerminalViewSet)
 router.register(r"my-terminal", MyTerminalViewSet, basename="my_terminal")
 router.register(r"donator", DonatorViewSet)
 router.register(r"games", GameViewSet)
@@ -53,11 +54,11 @@ urlpatterns = [
     path("donator/email/<str:email>/", DonatorByEmail.as_view()),
     path("customer/<int:pk>/activate/", ActivateCustomer.as_view()),
     path("customer/<int:pk>/deactivate/", DeactivateCustomer.as_view()),
-    path("terminal/mine/", TerminalByOwner.as_view()),
-    path("terminal/mine/on/", TurnOnTerminal.as_view()),
-    path("terminal/mine/off/", TurnOffTerminal.as_view()),
-    path("terminal/mine/play/", PlayingOnTerminal.as_view()),
-    path("terminal/mine/gameover/", PlayingOffTerminal.as_view()),
+    path("terminal/mine/", TerminalByOwner.as_view()),  # TODO remove
+    path("terminal/mine/on/", TurnOnTerminal.as_view()),  # TODO remove
+    path("terminal/mine/off/", TurnOffTerminal.as_view()),  # TODO remove
+    path("terminal/mine/play/", PlayingOnTerminal.as_view()),  # TODO remove
+    path("terminal/mine/gameover/", PlayingOffTerminal.as_view()),  # TODO remove
     path("terminal/<int:terminal>/stats/", StatsByTerminal.as_view()),
     path("session/terminal/<int:terminal>/avg/", AvgSessionByTerminal.as_view()),
     path("campaign/<int:id>/stats/", StatsByCampaign.as_view()),
