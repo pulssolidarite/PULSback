@@ -98,7 +98,7 @@ class LightTerminalSerializer(serializers.ModelSerializer):
     class _CustomerSerializer(serializers.ModelSerializer):
         class Meta:
             model = Customer
-            fields = "company"
+            fields = ("company",)
 
     customer = _CustomerSerializer(read_only=True)
 
