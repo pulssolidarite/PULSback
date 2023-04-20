@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 
 import os
 import django_heroku
+import datetime
 
 
 # Sentry
@@ -128,6 +129,17 @@ REST_FRAMEWORK = {
         "rest_framework.authentication.BasicAuthentication",
         "rest_framework.authentication.SessionAuthentication",
     ),
+}
+
+# JWT AUTH
+
+# Check https://django-rest-framework-simplejwt.readthedocs.io/en/latest/settings.html#settings
+# For SIMPLE JWT settings configuration
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": datetime.timedelta(days=1),
+    "REFRESH_TOKEN_LIFETIME": datetime.timedelta(days=7),
+    "ROTATE_REFRESH_TOKENS": False,
 }
 
 CORS_ORIGIN_WHITELIST = [

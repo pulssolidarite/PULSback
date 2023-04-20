@@ -32,7 +32,26 @@ class Terminal(models.Model):
     check_for_updates = models.BooleanField(default=False)
     play_timer = models.BigIntegerField(default=10)
     free_mode_text = models.CharField(max_length=250, blank=True, null=True)
+
+    # Payment terminal
+
     payment_terminal = models.CharField(max_length=250, null=True, blank=True)
+
+    PAYTER = "PAYTER"
+    PAX = "PAX"
+
+    PAYMENT_TERMINAL_TYPE_CHOICES = (
+        (PAYTER, PAYTER),
+        (PAX, PAX),
+    )
+
+    payment_terminal_type = models.CharField(
+        max_length=10,
+        choices=PAYMENT_TERMINAL_TYPE_CHOICES,
+        default=PAYTER,
+        verbose_name="Type de terminal de paiement"
+    )
+
     donation_min_amount = models.IntegerField(default=1)
     donation_default_amount = models.IntegerField(default=1)
     donation_max_amount = models.IntegerField(default=50)

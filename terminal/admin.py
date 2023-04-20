@@ -85,12 +85,20 @@ class TerminalAdmin(admin.ModelAdmin):
             },
         ),
         (
+            "TPE général",
+            {
+                "fields": (
+                    "payment_terminal",
+                    "payment_terminal_type",
+                ),
+            },
+        ),
+        (
             "Paramétrage général",
             {
                 "fields": (
                     "play_timer",
                     "free_mode_text",
-                    "payment_terminal",
                 ),
             },
         ),
