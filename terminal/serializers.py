@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from screensaver.serializers.screensaver_broadcast import ScreenSaverBroadcastSerializer
 
-from fleet.models import Campaign, Customer
+from fleet.models import Campaign, Customer, User
 from fleet.serializers import (
     CampaignSerializer,
     UserSerializerWithCustomer,
@@ -47,7 +47,15 @@ class FullTerminalSerializer(serializers.ModelSerializer):
     """
 
     owner = UserSerializerWithCustomer(many=False, read_only=True)
+    owner_id = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(), write_only=True
+    )
+
     customer = CustomerSerializer(many=False, read_only=True)
+    customer_id = serializers.PrimaryKeyRelatedField(
+        queryset=Customer.objects.all(), write_only=True
+    )
+
     campaigns = serializers.PrimaryKeyRelatedField(
         queryset=Campaign.objects.all(), many=True, allow_null=True
     )
