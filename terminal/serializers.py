@@ -48,12 +48,12 @@ class FullTerminalSerializer(serializers.ModelSerializer):
 
     owner = UserSerializerWithCustomer(many=False, read_only=True)
     owner_id = serializers.PrimaryKeyRelatedField(
-        queryset=User.objects.all(), write_only=True
+        queryset=User.objects.all(), write_only=True, source="owner"
     )
 
     customer = CustomerSerializer(many=False, read_only=True)
     customer_id = serializers.PrimaryKeyRelatedField(
-        queryset=Customer.objects.all(), write_only=True
+        queryset=Customer.objects.all(), write_only=True, source="customer"
     )
 
     campaigns = serializers.PrimaryKeyRelatedField(
