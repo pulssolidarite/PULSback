@@ -8,6 +8,7 @@ from fleet.serializers import (
     CampaignSerializer,
     UserSerializer,
     CustomerSerializer,
+    UserSerializerWithCustomer,
 )
 
 from game.serializers import GameSerializer
