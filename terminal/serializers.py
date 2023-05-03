@@ -1,11 +1,12 @@
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 
 from screensaver.serializers.screensaver_broadcast import ScreenSaverBroadcastSerializer
 
 from fleet.models import Campaign, Customer, User
 from fleet.serializers import (
     CampaignSerializer,
-    UserSerializerWithCustomer,
+    UserSerializer,
     CustomerSerializer,
 )
 
@@ -46,14 +47,14 @@ class FullTerminalSerializer(serializers.ModelSerializer):
     (including terminal owner, terminal customer, all screensavers...)
     """
 
-    owner = UserSerializerWithCustomer(many=False)
+    owner = UserSerializer(required=False)
     owner_id = serializers.PrimaryKeyRelatedField(
-        queryset=User.objects.all(), write_only=True, source="owner"
+        queryset=User.objects.all(), write_only=True, source="owner", required=False
     )
 
-    customer = CustomerSerializer(many=False)
+    customer = CustomerSerializer(required=False)
     customer_id = serializers.PrimaryKeyRelatedField(
-        queryset=Customer.objects.all(), write_only=True, source="customer"
+        queryset=Customer.objects.all(), write_only=True, source="customer", required=False
     )
 
     campaigns = serializers.PrimaryKeyRelatedField(
@@ -62,9 +63,13 @@ class FullTerminalSerializer(serializers.ModelSerializer):
     games = serializers.PrimaryKeyRelatedField(
         queryset=Game.objects.all(), many=True, allow_null=True
     )
-    subscription_type = serializers.ReadOnlyField()
+    
     payment_terminal = serializers.CharField(allow_null=True)
     donation_formula = serializers.CharField()
+
+    # Read only stuffs
+
+    subscription_type = serializers.ReadOnlyField()
     screensaver_broadcasts = ScreenSaverBroadcastSerializer(
         many=True,
         read_only=True,
@@ -79,6 +84,49 @@ class FullTerminalSerializer(serializers.ModelSerializer):
     class Meta:
         model = Terminal
         fields = "__all__"
+
+    def create(self, validated_data):
+
+        # Parse data
+
+        customer = validated_data.pop("customer", None)
+        owner = validated_data.pop("owner", None)
+
+        # Create customer if needed
+
+        if customer is None:
+            raise ValidationError({"customer", "customer or customer_id required", "customer_id", "customer or customer_id required"})
+
+        if customer is not None and not isinstance(customer, Customer):
+            # Create new customer
+            customer_serializer = CustomerSerializer(data=customer)
+            if not customer_serializer.is_valid():
+                raise ValidationError(customer_serializer.errors)
+            customer = customer_serializer.save()
+
+        # Create owner if needed
+
+        if owner is None:
+            raise ValidationError({"owner", "owner or owner_id required", "owner_id", "owner or owner_id required"})
+
+        if owner is not None and not isinstance(owner, User):
+            # Create new owner
+            owner_serializer = UserSerializer(data=owner)
+            if not owner_serializer.is_valid():
+                raise ValidationError(owner_serializer.errors)
+            owner = owner_serializer.save()
+
+        # Create terminal
+
+        terminal: Terminal = Terminal.objects.create(
+            **validated_data,
+            customer=customer,
+            owner=owner,
+        )
+
+        # Return
+
+        return terminal
 
 
 class LightTerminalSerializer(serializers.ModelSerializer):
