@@ -92,6 +92,8 @@ class FullTerminalSerializer(serializers.ModelSerializer):
 
         customer = validated_data.pop("customer", None)
         owner = validated_data.pop("owner", None)
+        campaigns = validated_data.pop("campaigns", None)
+        games = validated_data.pop("games", None)
 
         # Create customer if needed
 
@@ -124,6 +126,12 @@ class FullTerminalSerializer(serializers.ModelSerializer):
             customer=customer,
             owner=owner,
         )
+
+        if campaigns:
+            terminal.campaigns.set(campaigns)
+
+        if games:
+            terminal.games.set(games)
 
         # Return
 
