@@ -301,7 +301,6 @@ class FilterSelectItems(APIView):
     ]  # Only accessible for admin or customer users
 
     def get(self, request, format=None):
-
         user: User = request.user
 
         campaigns = Campaign.objects.filter().order_by("name")
@@ -393,6 +392,7 @@ class PaymentFilteredViewSet(viewsets.ViewSet):
         terminal = _TerminalSerializer(many=False, read_only=True)
         campaign = _CampaignSerializer(many=False, read_only=True)
         game = _GameSerializer(many=False, read_only=True)
+        date = serializers.DatetimeField(format="iso-8601", read_only=True)
 
         class Meta:
             model = Payment
