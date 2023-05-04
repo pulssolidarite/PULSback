@@ -40,7 +40,9 @@ class Payment(models.Model):
         verbose_name="Jeu",
     )
 
-    date = models.DateTimeField(auto_now=True)  # Datetime is in UTC time
+    date = models.DateTimeField(
+        auto_now=True, verbose_name="Date et heure (UTC)"
+    )  # Datetime is in UTC time
 
     method = models.CharField(
         max_length=255, verbose_name="Méthode de paiement"
