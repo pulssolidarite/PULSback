@@ -34,7 +34,7 @@ class Customer(models.Model):
     # The customer can select its own featured game for its own terminals
     # This selected game will overwrite the game that is selected as featured for everyone
     featured_game = models.ForeignKey(
-        "fleet.Game", on_delete=models.SET_NULL, null=True, blank=True
+        "game.Game", on_delete=models.SET_NULL, null=True, blank=True
     )
 
     class Meta:
