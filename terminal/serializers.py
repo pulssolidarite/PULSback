@@ -127,8 +127,12 @@ class FullTerminalSerializer(serializers.ModelSerializer):
             owner=owner,
         )
 
+        # Assign campaigns
+
         if campaigns:
             terminal.campaigns.set(campaigns)
+
+        # Assign games
 
         if games:
             terminal.games.set(games)
