@@ -190,6 +190,11 @@ class Customer(models.Model):
         Game, on_delete=models.SET_NULL, null=True, blank=True
     )
 
+    class Meta:
+        verbose_name = "Client"
+        verbose_name_plural = "Clients"
+        ordering = ["id"]
+
     def __str__(self):
         return self.company or ""
 
