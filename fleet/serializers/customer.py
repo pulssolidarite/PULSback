@@ -34,8 +34,6 @@ class CustomerSerializerWithUser(CustomerSerializer):
         model = Customer
         fields = "__all__"
         read_only_fields = (
-            "user",
-            "logo",
             "is_archived",
             "is_active",
             "featured_campaign",

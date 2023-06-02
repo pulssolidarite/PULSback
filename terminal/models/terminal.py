@@ -30,7 +30,7 @@ class Terminal(models.Model):
     version = models.CharField(max_length=10, null=True, blank=True)
     is_archived = models.BooleanField(default=False)
     check_for_updates = models.BooleanField(default=False)
-    play_timer = models.BigIntegerField(default=10)
+    play_timer = models.BigIntegerField(default=10) # Time (in minutes)
     free_mode_text = models.CharField(max_length=250, blank=True, null=True)
 
     # Payment terminal

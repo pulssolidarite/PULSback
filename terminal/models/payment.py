@@ -40,7 +40,9 @@ class Payment(models.Model):
         verbose_name="Jeu",
     )
 
-    date = models.DateTimeField(auto_now=True)
+    date = models.DateTimeField(
+        auto_now=True, verbose_name="Date et heure (UTC)"
+    )  # Datetime is in UTC time
 
     method = models.CharField(
         max_length=255, verbose_name="Méthode de paiement"
@@ -79,7 +81,6 @@ class Payment(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.pk:
-
             # Payment is being created
 
             if not self.payment_terminal:

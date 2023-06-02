@@ -1,7 +1,10 @@
 from rest_framework import serializers
-from fleet.models import Campaign, Game
-from terminal.models import Payment
+
 from django.db.models import Sum
+
+from fleet.models import Campaign
+from game.models import Game
+from terminal.models import Payment
 
 
 from .donation_step import DonationStepSerializer
