@@ -48,7 +48,7 @@ class GameFile(models.Model):
 
 
 class Game(models.Model):
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, verbose_name="Titre")
     path = models.CharField(
         max_length=255, verbose_name="Nom du fichier rom ou répertoire du jeu sur Hera"
     )
@@ -66,7 +66,7 @@ class Game(models.Model):
         related_name="games",
         verbose_name="Fichier core",
     )
-    description = models.TextField()
+    description = models.TextField(verbose_name="Description")
     is_video = models.BooleanField(default=False)
     video = models.CharField(max_length=255, null=True, blank=True)
     logo = models.FileField(blank=True, null=True, upload_to="games/logos/")
@@ -95,7 +95,6 @@ class Game(models.Model):
     execution_script = models.TextField(
         null=True, blank=True, verbose_name="Script de lancement"
     )
-    kill_script = models.TextField(null=True, blank=True, verbose_name="Script d'arrêt")
 
     def save(self, *args, **kwargs):
         """
