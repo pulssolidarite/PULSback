@@ -26,6 +26,9 @@ from terminal.views import *
 from screensaver.views import *
 from game.views import GameViewSet
 
+from terminal.views.my_terminal import MyTerminalViewSet
+from terminal.views.terminals import TerminalViewSet
+
 
 router = DefaultRouter()
 router.register(r"customer", CustomerViewSet)

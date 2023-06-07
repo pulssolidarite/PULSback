@@ -55,7 +55,10 @@ class FullTerminalSerializer(serializers.ModelSerializer):
 
     customer = CustomerSerializer(required=False)
     customer_id = serializers.PrimaryKeyRelatedField(
-        queryset=Customer.objects.all(), write_only=True, source="customer", required=False
+        queryset=Customer.objects.all(),
+        write_only=True,
+        source="customer",
+        required=False,
     )
 
     campaigns = serializers.PrimaryKeyRelatedField(
@@ -64,7 +67,7 @@ class FullTerminalSerializer(serializers.ModelSerializer):
     games = serializers.PrimaryKeyRelatedField(
         queryset=Game.objects.all(), many=True, allow_null=True
     )
-    
+
     payment_terminal = serializers.CharField(allow_null=True)
     donation_formula = serializers.CharField()
 
@@ -87,7 +90,6 @@ class FullTerminalSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     def create(self, validated_data):
-
         # Parse data
 
         customer = validated_data.pop("customer", None)
@@ -98,7 +100,14 @@ class FullTerminalSerializer(serializers.ModelSerializer):
         # Create customer if needed
 
         if customer is None:
-            raise ValidationError({"customer", "customer or customer_id required", "customer_id", "customer or customer_id required"})
+            raise ValidationError(
+                {
+                    "customer",
+                    "customer or customer_id required",
+                    "customer_id",
+                    "customer or customer_id required",
+                }
+            )
 
         if customer is not None and not isinstance(customer, Customer):
             # Create new customer
@@ -110,7 +119,14 @@ class FullTerminalSerializer(serializers.ModelSerializer):
         # Create owner if needed
 
         if owner is None:
-            raise ValidationError({"owner", "owner or owner_id required", "owner_id", "owner or owner_id required"})
+            raise ValidationError(
+                {
+                    "owner",
+                    "owner or owner_id required",
+                    "owner_id",
+                    "owner or owner_id required",
+                }
+            )
 
         if owner is not None and not isinstance(owner, User):
             # Create new owner
@@ -197,6 +213,7 @@ class TerminalSemiSerializer(serializers.Serializer):
     free_mode_text = serializers.CharField()
     payment_terminal = serializers.CharField(allow_null=True)
     donation_formula = serializers.CharField(allow_null=True)
+    version = serializers.CharField(read_only=True)
 
 
 # Serializer pour le model Terminal
