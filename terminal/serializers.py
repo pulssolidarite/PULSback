@@ -53,12 +53,12 @@ class FullTerminalSerializer(serializers.ModelSerializer):
     (including terminal owner, terminal customer, all screensavers...)
     """
 
-    owner = UserSerializer(required=False)
+    owner = UserSerializer(read_only=True)
     owner_id = serializers.PrimaryKeyRelatedField(
         queryset=User.objects.all(), write_only=True, source="owner", required=False
     )
 
-    customer = CustomerSerializer(required=False)
+    customer = CustomerSerializer(read_only=True)
     customer_id = serializers.PrimaryKeyRelatedField(
         queryset=Customer.objects.all(),
         write_only=True,
@@ -66,17 +66,20 @@ class FullTerminalSerializer(serializers.ModelSerializer):
         required=False,
     )
 
-    campaigns = serializers.PrimaryKeyRelatedField(
-        queryset=Campaign.objects.all(), many=True, allow_null=True
+    campaigns = CampaignSerializer(many=True, read_only=True)
+    campaign_ids = serializers.PrimaryKeyRelatedField(
+        queryset=Campaign.objects.all(), many=True, write_only=True, source="campaigns"
     )
-    games = serializers.PrimaryKeyRelatedField(
-        queryset=Game.objects.all(), many=True, allow_null=True
+
+    games = _GameSerializer(many=True, read_only=True)
+    game_ids = serializers.PrimaryKeyRelatedField(
+        queryset=Game.objects.all(), many=True, write_only=True, source="games"
     )
 
     payment_terminal = serializers.CharField(allow_null=True)
     donation_formula = serializers.CharField()
 
-    # Read only stuffs
+    # Other read only stuffs
 
     subscription_type = serializers.ReadOnlyField()
     screensaver_broadcasts = ScreenSaverBroadcastSerializer(
