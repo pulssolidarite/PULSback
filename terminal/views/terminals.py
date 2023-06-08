@@ -54,6 +54,7 @@ class _TerminalSerializerForListing(serializers.ModelSerializer):
             "customer",
             "version",
             "total_donations",
+            "games",
         )
 
 
