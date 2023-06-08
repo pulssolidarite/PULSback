@@ -11,29 +11,34 @@ from fleet.serializers import (
     UserSerializerWithCustomer,
 )
 
-from game.serializers import GameSerializer
 from game.models import Game
 
 from .models import Terminal, Donator, Session, Payment
 
 
+class _GameSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Game
+        fields = "__all__"
+
+
 # Serializer pour le model Donator
-class DonatorSerializer(serializers.ModelSerializer):
+class _DonatorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Donator
         fields = "__all__"
 
 
-class PaymentSerializer(serializers.ModelSerializer):
+class _CampaignSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Payment
+        model = Campaign
         fields = "__all__"
 
 
 class PaymentForTerminalSerializer(serializers.ModelSerializer):
-    donator = DonatorSerializer(many=False, read_only=True)
-    campaign = CampaignSerializer(many=False, read_only=True)
-    game = GameSerializer(many=False, read_only=True)
+    donator = _DonatorSerializer(many=False, read_only=True)
+    campaign = _CampaignSerializer(many=False, read_only=True)
+    game = _GameSerializer(many=False, read_only=True)
 
     class Meta:
         model = Payment
@@ -48,27 +53,33 @@ class FullTerminalSerializer(serializers.ModelSerializer):
     (including terminal owner, terminal customer, all screensavers...)
     """
 
-    owner = UserSerializer(required=False)
+    owner = UserSerializer(read_only=True)
     owner_id = serializers.PrimaryKeyRelatedField(
         queryset=User.objects.all(), write_only=True, source="owner", required=False
     )
 
-    customer = CustomerSerializer(required=False)
+    customer = CustomerSerializer(read_only=True)
     customer_id = serializers.PrimaryKeyRelatedField(
-        queryset=Customer.objects.all(), write_only=True, source="customer", required=False
+        queryset=Customer.objects.all(),
+        write_only=True,
+        source="customer",
+        required=False,
     )
 
-    campaigns = serializers.PrimaryKeyRelatedField(
-        queryset=Campaign.objects.all(), many=True, allow_null=True
+    campaigns = CampaignSerializer(many=True, read_only=True)
+    campaign_ids = serializers.PrimaryKeyRelatedField(
+        queryset=Campaign.objects.all(), many=True, write_only=True, source="campaigns"
     )
-    games = serializers.PrimaryKeyRelatedField(
-        queryset=Game.objects.all(), many=True, allow_null=True
+
+    games = _GameSerializer(many=True, read_only=True)
+    game_ids = serializers.PrimaryKeyRelatedField(
+        queryset=Game.objects.all(), many=True, write_only=True, source="games"
     )
-    
+
     payment_terminal = serializers.CharField(allow_null=True)
     donation_formula = serializers.CharField()
 
-    # Read only stuffs
+    # Other read only stuffs
 
     subscription_type = serializers.ReadOnlyField()
     screensaver_broadcasts = ScreenSaverBroadcastSerializer(
@@ -87,7 +98,6 @@ class FullTerminalSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     def create(self, validated_data):
-
         # Parse data
 
         customer = validated_data.pop("customer", None)
@@ -98,7 +108,14 @@ class FullTerminalSerializer(serializers.ModelSerializer):
         # Create customer if needed
 
         if customer is None:
-            raise ValidationError({"customer", "customer or customer_id required", "customer_id", "customer or customer_id required"})
+            raise ValidationError(
+                {
+                    "customer",
+                    "customer or customer_id required",
+                    "customer_id",
+                    "customer or customer_id required",
+                }
+            )
 
         if customer is not None and not isinstance(customer, Customer):
             # Create new customer
@@ -110,7 +127,14 @@ class FullTerminalSerializer(serializers.ModelSerializer):
         # Create owner if needed
 
         if owner is None:
-            raise ValidationError({"owner", "owner or owner_id required", "owner_id", "owner or owner_id required"})
+            raise ValidationError(
+                {
+                    "owner",
+                    "owner or owner_id required",
+                    "owner_id",
+                    "owner or owner_id required",
+                }
+            )
 
         if owner is not None and not isinstance(owner, User):
             # Create new owner
@@ -186,7 +210,7 @@ class TerminalSemiSerializer(serializers.Serializer):
     is_playing = serializers.BooleanField()
     play_timer = serializers.IntegerField()
     campaigns = CampaignSerializer(many=True, allow_null=True)
-    games = GameSerializer(many=True, allow_null=True)
+    games = _GameSerializer(many=True, allow_null=True)
     owner = UserSerializerWithCustomer(many=False, read_only=True)
     customer = CustomerSerializer(many=False, read_only=True)
     total_donations = serializers.ReadOnlyField()
@@ -197,6 +221,7 @@ class TerminalSemiSerializer(serializers.Serializer):
     free_mode_text = serializers.CharField()
     payment_terminal = serializers.CharField(allow_null=True)
     donation_formula = serializers.CharField(allow_null=True)
+    version = serializers.CharField(read_only=True)
 
 
 # Serializer pour le model Terminal
@@ -209,7 +234,7 @@ class TerminalFullSerializer(serializers.Serializer):
     is_playing = serializers.BooleanField()
     play_timer = serializers.IntegerField()
     campaigns = CampaignSerializer(many=True, allow_null=True)
-    games = GameSerializer(many=True, allow_null=True)
+    games = _GameSerializer(many=True, allow_null=True)
     owner = UserSerializerWithCustomer(many=False, read_only=True)
     customer = CustomerSerializer(many=False, read_only=True)
     total_donations = serializers.ReadOnlyField()
@@ -225,10 +250,10 @@ class TerminalFullSerializer(serializers.Serializer):
 
 # Serializer pour le model Payment
 class PaymentFullSerializer(serializers.ModelSerializer):
-    donator = DonatorSerializer(many=False, read_only=True)
+    donator = _DonatorSerializer(many=False, read_only=True)
     campaign = CampaignSerializer(many=False, read_only=True)
     terminal = FullTerminalSerializer(many=False, read_only=True)
-    game = GameSerializer(many=False, read_only=True)
+    game = _GameSerializer(many=False, read_only=True)
 
     class Meta:
         model = Payment

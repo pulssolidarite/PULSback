@@ -17,20 +17,37 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.conf.urls.static import static
+from django.conf import settings
 
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework.routers import DefaultRouter
 
 from fleet.views import *
-from terminal.views import *
 from screensaver.views import *
 from game.views import GameViewSet
 
+from terminal.views.my_terminal import MyTerminalViewSet
+from terminal.views.terminals import TerminalViewSet
+from terminal.views import (
+    DonatorViewSet,
+    SessionViewSet,
+    PaymentFilteredViewSet,
+    PaymentViewSet,
+    DonatorByEmail,
+    StatsByTerminal,
+    AvgSessionByTerminal,
+    FilterSelectItems,
+    DashboardStats,
+    TerminalByOwner,
+    PlayingOnTerminal,
+    TurnOnTerminal,
+    TurnOffTerminal,
+    PlayingOffTerminal,
+)
 
 router = DefaultRouter()
 router.register(r"customer", CustomerViewSet)
 router.register(r"campaign", CampaignViewSet)
-router.register(r"terminal", TerminalViewSet)  # TODO remove
 router.register(r"terminals", TerminalViewSet)
 router.register(r"my-terminal", MyTerminalViewSet, basename="my_terminal")
 router.register(r"donator", DonatorViewSet)
@@ -54,11 +71,17 @@ urlpatterns = [
     path("donator/email/<str:email>/", DonatorByEmail.as_view()),
     path("customer/<int:pk>/activate/", ActivateCustomer.as_view()),
     path("customer/<int:pk>/deactivate/", DeactivateCustomer.as_view()),
-    path("terminal/mine/", TerminalByOwner.as_view()),  # TODO remove
-    path("terminal/mine/on/", TurnOnTerminal.as_view()),  # TODO remove
-    path("terminal/mine/off/", TurnOffTerminal.as_view()),  # TODO remove
-    path("terminal/mine/play/", PlayingOnTerminal.as_view()),  # TODO remove
-    path("terminal/mine/gameover/", PlayingOffTerminal.as_view()),  # TODO remove
+    path("terminal/mine/", TerminalByOwner.as_view()),  # TODO remove after july 2023
+    path("terminal/mine/on/", TurnOnTerminal.as_view()),  # TODO remove after july 2023
+    path(
+        "terminal/mine/off/", TurnOffTerminal.as_view()
+    ),  # TODO remove after july 2023
+    path(
+        "terminal/mine/play/", PlayingOnTerminal.as_view()
+    ),  # TODO remove after july 2023
+    path(
+        "terminal/mine/gameover/", PlayingOffTerminal.as_view()
+    ),  # TODO remove after july 2023
     path("terminal/<int:terminal>/stats/", StatsByTerminal.as_view()),
     path("session/terminal/<int:terminal>/avg/", AvgSessionByTerminal.as_view()),
     path("campaign/<int:id>/stats/", StatsByCampaign.as_view()),

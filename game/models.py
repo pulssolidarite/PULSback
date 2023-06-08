@@ -1,5 +1,6 @@
 from django.db import models
 
+
 # Create your models here.
 class CoreFile(models.Model):
     file = models.FileField(upload_to="games/cores/")
@@ -47,13 +48,25 @@ class GameFile(models.Model):
 
 
 class Game(models.Model):
-    name = models.CharField(max_length=255)
-    path = models.CharField(max_length=255)
-    file = models.OneToOneField(GameFile, on_delete=models.CASCADE, related_name="rom")
-    core = models.ForeignKey(
-        Core, on_delete=models.SET_NULL, null=True, blank=True, related_name="games"
+    name = models.CharField(max_length=255, verbose_name="Titre")
+    path = models.CharField(
+        max_length=255, verbose_name="Nom du fichier rom ou répertoire du jeu sur Hera"
     )
-    description = models.TextField()
+    file = models.OneToOneField(
+        GameFile,
+        on_delete=models.CASCADE,
+        related_name="rom",
+        verbose_name="Fichier rom ou fichier d'installation",
+    )
+    core = models.ForeignKey(
+        Core,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="games",
+        verbose_name="Fichier core",
+    )
+    description = models.TextField(verbose_name="Description")
     is_video = models.BooleanField(default=False)
     video = models.CharField(max_length=255, null=True, blank=True)
     logo = models.FileField(blank=True, null=True, upload_to="games/logos/")
@@ -76,14 +89,11 @@ class Game(models.Model):
     type = models.CharField(max_length=255, default="Unique", null=True, blank=True)
     nb_players = models.IntegerField(default=1, null=True, blank=True)
     featured = models.BooleanField(verbose_name="Jeux du moment", default=False)
-    installation_script = models.CharField(
-        max_length=255, null=True, blank=True, verbose_name="Script d'installation"
+    installation_script = models.TextField(
+        null=True, blank=True, verbose_name="Script d'installation"
     )
-    execution_script = models.CharField(
-        max_length=255, null=True, blank=True, verbose_name="Script de lancement"
-    )
-    kill_script = models.CharField(
-        max_length=255, null=True, blank=True, verbose_name="Script d'arrêt"
+    execution_script = models.TextField(
+        null=True, blank=True, verbose_name="Script de lancement"
     )
 
     def save(self, *args, **kwargs):
