@@ -51,7 +51,7 @@ class GameSerializer(serializers.ModelSerializer):
     nb_terminals = serializers.ReadOnlyField()
 
     core_id = serializers.PrimaryKeyRelatedField(
-        queryset=Core.objects.all(), source="core", write_only=True
+        queryset=Core.objects.all(), source="core", write_only=True, required=False
     )
 
     file_id = serializers.PrimaryKeyRelatedField(
