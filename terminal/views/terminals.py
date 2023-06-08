@@ -32,6 +32,12 @@ class _CampaignSerializerNameOnly(serializers.ModelSerializer):
         fields = ("name",)
 
 
+class _GameSerializerNameOnly(serializers.ModelSerializer):
+    class Meta:
+        model = Game
+        fields = ("name",)
+
+
 class _CustomerSerializerCompanyOnly(serializers.ModelSerializer):
     class Meta:
         model = Customer
@@ -40,6 +46,7 @@ class _CustomerSerializerCompanyOnly(serializers.ModelSerializer):
 
 class _TerminalSerializerForListing(serializers.ModelSerializer):
     campaigns = _CampaignSerializerNameOnly(many=True, read_only=True)
+    games = _GameSerializerNameOnly(many=True, read_only=True)
     customer = _CustomerSerializerCompanyOnly(read_only=True)
 
     class Meta:
