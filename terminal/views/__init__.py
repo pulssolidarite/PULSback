@@ -28,6 +28,12 @@ from terminal.models import Terminal, Donator, Session, Payment
 from terminal.serializers import *
 
 
+class _GameSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Game
+        fields = "__all__"
+
+
 class DashboardStats(APIView):
     """
     This view is used from SETH front admin or customer
@@ -205,7 +211,7 @@ class FilterSelectItems(APIView):
         )
 
         games = Game.objects.filter().order_by("name")
-        games_serlializer = GameSerializer(
+        games_serlializer = _GameSerializer(
             games, many=True, context={"request": request}
         )
 
@@ -709,7 +715,7 @@ class TerminalByOwner(APIView):
                 many=True,
                 context={"request": request},
             )
-            games_serializer = GameSerializer(
+            games_serializer = _GameSerializer(
                 terminal.games.order_by("-featured", "name"),
                 many=True,
                 context={"request": request},
@@ -788,9 +794,15 @@ class PlayingOffTerminal(APIView):
             return Response(status=status.HTTP_404_NOT_FOUND)
 
 
+class _DonatorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Donator
+        fields = "__all__"
+
+
 # Donator Model
 class DonatorViewSet(viewsets.ModelViewSet):
-    serializer_class = DonatorSerializer
+    serializer_class = _DonatorSerializer
     queryset = Donator.objects.all()
     permission_classes = [IsAuthenticated]
 
@@ -801,7 +813,7 @@ class DonatorByEmail(APIView):
     def get(self, request, email, format=None):
         try:
             donator = Donator.objects.get(email=email)
-            serializer = DonatorSerializer(donator)
+            serializer = _DonatorSerializer(donator)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
@@ -833,9 +845,15 @@ class AvgSessionByTerminal(APIView):
             return Response(status=status.HTTP_404_NOT_FOUND)
 
 
+class _PaymentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Payment
+        fields = "__all__"
+
+
 # Payment Model
 class PaymentViewSet(viewsets.ModelViewSet):
-    serializer_class = PaymentSerializer
+    serializer_class = _PaymentSerializer
     queryset = Payment.objects.all()
     permission_classes = [IsAuthenticated]
 

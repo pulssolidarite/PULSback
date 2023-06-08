@@ -15,8 +15,15 @@ from terminal.models import Terminal
 
 from terminal.serializers import (
     FullTerminalSerializer,
-    GameSerializer,
 )
+
+from game.models import Game
+
+
+class _GameSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Game
+        fields = "__all__"
 
 
 class _CampaignSerializerNameOnly(serializers.ModelSerializer):
@@ -164,5 +171,5 @@ class TerminalViewSet(viewsets.ModelViewSet):
     def games(self, request, pk, format=None):
         terminal: Terminal = get_object_or_404(self.get_queryset(), pk=pk)
         games = terminal.games
-        games = GameSerializer(games, many=True, context={"request": request})
+        games = _GameSerializer(games, many=True, context={"request": request})
         return Response(games.data, status=status.HTTP_200_OK)

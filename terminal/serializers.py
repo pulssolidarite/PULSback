@@ -11,29 +11,34 @@ from fleet.serializers import (
     UserSerializerWithCustomer,
 )
 
-from game.serializers import GameSerializer
 from game.models import Game
 
 from .models import Terminal, Donator, Session, Payment
 
 
+class _GameSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Game
+        fields = "__all__"
+
+
 # Serializer pour le model Donator
-class DonatorSerializer(serializers.ModelSerializer):
+class _DonatorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Donator
         fields = "__all__"
 
 
-class PaymentSerializer(serializers.ModelSerializer):
+class _CampaignSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Payment
+        model = Campaign
         fields = "__all__"
 
 
 class PaymentForTerminalSerializer(serializers.ModelSerializer):
-    donator = DonatorSerializer(many=False, read_only=True)
-    campaign = CampaignSerializer(many=False, read_only=True)
-    game = GameSerializer(many=False, read_only=True)
+    donator = _DonatorSerializer(many=False, read_only=True)
+    campaign = _CampaignSerializer(many=False, read_only=True)
+    game = _GameSerializer(many=False, read_only=True)
 
     class Meta:
         model = Payment
@@ -202,7 +207,7 @@ class TerminalSemiSerializer(serializers.Serializer):
     is_playing = serializers.BooleanField()
     play_timer = serializers.IntegerField()
     campaigns = CampaignSerializer(many=True, allow_null=True)
-    games = GameSerializer(many=True, allow_null=True)
+    games = _GameSerializer(many=True, allow_null=True)
     owner = UserSerializerWithCustomer(many=False, read_only=True)
     customer = CustomerSerializer(many=False, read_only=True)
     total_donations = serializers.ReadOnlyField()
@@ -226,7 +231,7 @@ class TerminalFullSerializer(serializers.Serializer):
     is_playing = serializers.BooleanField()
     play_timer = serializers.IntegerField()
     campaigns = CampaignSerializer(many=True, allow_null=True)
-    games = GameSerializer(many=True, allow_null=True)
+    games = _GameSerializer(many=True, allow_null=True)
     owner = UserSerializerWithCustomer(many=False, read_only=True)
     customer = CustomerSerializer(many=False, read_only=True)
     total_donations = serializers.ReadOnlyField()
@@ -242,10 +247,10 @@ class TerminalFullSerializer(serializers.Serializer):
 
 # Serializer pour le model Payment
 class PaymentFullSerializer(serializers.ModelSerializer):
-    donator = DonatorSerializer(many=False, read_only=True)
+    donator = _DonatorSerializer(many=False, read_only=True)
     campaign = CampaignSerializer(many=False, read_only=True)
     terminal = FullTerminalSerializer(many=False, read_only=True)
-    game = GameSerializer(many=False, read_only=True)
+    game = _GameSerializer(many=False, read_only=True)
 
     class Meta:
         model = Payment

@@ -3,15 +3,84 @@ from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.viewsets import GenericViewSet
-from rest_framework import status
+from rest_framework import status, serializers
 
-
+from fleet.models import Customer
 from fleet.serializers import CampaignSerializer
 
 from backend.permissions import TerminalIsAuthenticated
 
 from terminal.models import Terminal
-from terminal.serializers import *
+
+from game.models import CoreFile, BiosFile, Core, Game
+
+from screensaver.serializers.screensaver_broadcast import ScreenSaverBroadcastSerializer
+
+
+class _CoreFileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CoreFile
+        fields = "__all__"
+
+
+class _BiosFileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BiosFile
+        fields = "__all__"
+
+
+class _CoreSerializer(serializers.ModelSerializer):
+    file = _CoreFileSerializer(many=False, read_only=True)
+    bios = _BiosFileSerializer(many=False, read_only=True)
+    nb_games = serializers.ReadOnlyField()
+
+    class Meta:
+        model = Core
+        fields = "__all__"
+
+
+# Serializer pour le model Game
+class _GameFileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CoreFile
+        fields = "__all__"
+
+
+class GameSerializer(serializers.ModelSerializer):
+    core = _CoreSerializer(many=False, read_only=True)
+    file = _GameFileSerializer(many=False, read_only=True)
+
+    class Meta:
+        model = Game
+        fields = "__all__"
+
+
+class LightTerminalSerializer(serializers.ModelSerializer):
+    """
+    This serialize ONLY STRICTLY NECESSARY DATA FOR HERA.
+    It should serialize only public data as it will be sent to Hera, NO SENSIBLE DATA !
+    (for example, only visible screensavers, not all of them)
+    """
+
+    subscription_type = serializers.ReadOnlyField()
+    payment_terminal = serializers.CharField(allow_null=True)
+    donation_formula = serializers.CharField()
+    screensaver_broadcasts = ScreenSaverBroadcastSerializer(
+        many=True,
+        read_only=True,
+        source="visible_screensaver_broadcasts",
+    )
+
+    class _CustomerSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = Customer
+            fields = ("company",)
+
+    customer = _CustomerSerializer(read_only=True)
+
+    class Meta:
+        model = Terminal
+        fields = "__all__"
 
 
 class MyTerminalViewSet(GenericViewSet):
