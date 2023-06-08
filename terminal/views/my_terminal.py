@@ -39,14 +39,13 @@ class _CoreSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-# Serializer pour le model Game
 class _GameFileSerializer(serializers.ModelSerializer):
     class Meta:
         model = CoreFile
         fields = "__all__"
 
 
-class GameSerializer(serializers.ModelSerializer):
+class _GameSerializer(serializers.ModelSerializer):
     core = _CoreSerializer(many=False, read_only=True)
     file = _GameFileSerializer(many=False, read_only=True)
 
@@ -95,7 +94,7 @@ class MyTerminalViewSet(GenericViewSet):
                 many=True,
                 context={"request": request},
             )
-            games_serializer = GameSerializer(
+            games_serializer = _GameSerializer(
                 terminal.games.order_by("-featured", "name"),
                 many=True,
                 context={"request": request},

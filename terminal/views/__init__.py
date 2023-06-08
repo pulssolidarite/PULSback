@@ -16,7 +16,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.decorators import action
 
-from game.models import Game
+from game.models import Game, Core, BiosFile, CoreFile
 
 from fleet.models import Customer, User, Campaign
 from fleet.serializers import CustomerSerializer, CampaignSerializer
@@ -874,5 +874,134 @@ class StatsByTerminal(APIView):
             }
             serializer = json.dumps(serializer)
             return Response(serializer, status=status.HTTP_200_OK)
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+
+class _CoreFileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CoreFile
+        fields = "__all__"
+
+
+class _BiosFileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BiosFile
+        fields = "__all__"
+
+
+class _CoreSerializer(serializers.ModelSerializer):
+    file = _CoreFileSerializer(many=False, read_only=True)
+    bios = _BiosFileSerializer(many=False, read_only=True)
+    nb_games = serializers.ReadOnlyField()
+
+    class Meta:
+        model = Core
+        fields = "__all__"
+
+
+class _GameFileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CoreFile
+        fields = "__all__"
+
+
+class _GameSerializer(serializers.ModelSerializer):
+    core = _CoreSerializer(many=False, read_only=True)
+    file = _GameFileSerializer(many=False, read_only=True)
+
+    class Meta:
+        model = Game
+        fields = "__all__"
+
+
+class TerminalByOwner(APIView):
+    # TODO remove after july 2023
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, format=None):
+        try:
+            terminal = Terminal.objects.get(owner=request.user.id)
+            terminal_serializer = LightTerminalSerializer(terminal)
+            campaigns_serializer = CampaignSerializer(
+                terminal.campaigns.order_by("-featured", "name"),
+                many=True,
+                context={"request": request},
+            )
+            games_serializer = _GameSerializer(
+                terminal.games.order_by("-featured", "name"),
+                many=True,
+                context={"request": request},
+            )
+            return Response(
+                {
+                    "terminal": terminal_serializer.data,
+                    "campaigns": campaigns_serializer.data,
+                    "games": games_serializer.data,
+                },
+                status=status.HTTP_200_OK,
+            )
+
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+
+class TurnOnTerminal(APIView):
+    # TODO remove after july 2023
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, format=None):
+        try:
+            terminal = Terminal.objects.get(owner=request.user.id)
+            terminal.is_on = True
+            terminal.save()
+            serializer = LightTerminalSerializer(terminal)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+
+class TurnOffTerminal(APIView):
+    # TODO remove after july 2023
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, format=None):
+        try:
+            terminal = Terminal.objects.get(owner=request.user.id)
+            terminal.is_on = False
+            terminal.is_playing = False
+            terminal.save()
+            serializer = LightTerminalSerializer(terminal)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+
+class PlayingOnTerminal(APIView):
+    # TODO remove after july 2023
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, format=None):
+        try:
+            terminal = Terminal.objects.get(owner=request.user.id)
+            terminal.is_playing = True
+            terminal.save()
+            serializer = LightTerminalSerializer(terminal)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+
+class PlayingOffTerminal(APIView):
+    # TODO remove after july 2023
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, format=None):
+        try:
+            terminal = Terminal.objects.get(owner=request.user.id)
+            terminal.is_playing = False
+            terminal.save()
+            serializer = LightTerminalSerializer(terminal)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
