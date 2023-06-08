@@ -166,6 +166,7 @@ class TerminalViewSet(viewsets.ModelViewSet):
         serializer = FullTerminalSerializer(terminal)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    """
     @action(detail=True, methods=["get"])
     def campaigns(self, request, pk, format=None):
         terminal: Terminal = get_object_or_404(self.get_queryset(), pk=pk)
@@ -174,10 +175,13 @@ class TerminalViewSet(viewsets.ModelViewSet):
             campaigns, many=True, context={"request": request}
         )
         return Response(serializer.data, status=status.HTTP_200_OK)
+    """
 
+    """
     @action(detail=True, methods=["get"])
     def games(self, request, pk, format=None):
         terminal: Terminal = get_object_or_404(self.get_queryset(), pk=pk)
         games = terminal.games
         games = _GameSerializer(games, many=True, context={"request": request})
         return Response(games.data, status=status.HTTP_200_OK)
+    """
