@@ -6,12 +6,11 @@ import sys
 
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.db.models import Avg, Sum, Q
-from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
 from django.conf import settings
 from django.core.paginator import Paginator
 
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.permissions import IsAuthenticated
 from rest_framework import status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -700,98 +699,6 @@ class PaymentFilteredViewSet(viewsets.ViewSet):
                 }
             )
         return response
-
-
-class TerminalByOwner(APIView):
-    # TODO deprecated, use MyTerminalViewSet
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request, format=None):
-        try:
-            terminal = Terminal.objects.get(owner=request.user.id)
-            terminal_serializer = LightTerminalSerializer(terminal)
-            campaigns_serializer = CampaignSerializer(
-                terminal.campaigns.order_by("-featured", "name"),
-                many=True,
-                context={"request": request},
-            )
-            games_serializer = _GameSerializer(
-                terminal.games.order_by("-featured", "name"),
-                many=True,
-                context={"request": request},
-            )
-            return Response(
-                {
-                    "terminal": terminal_serializer.data,
-                    "campaigns": campaigns_serializer.data,
-                    "games": games_serializer.data,
-                },
-                status=status.HTTP_200_OK,
-            )
-
-        except ObjectDoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-
-
-class TurnOnTerminal(APIView):
-    # TODO deprecated, use MyTerminalViewSet
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request, format=None):
-        try:
-            terminal = Terminal.objects.get(owner=request.user.id)
-            terminal.is_on = True
-            terminal.save()
-            serializer = LightTerminalSerializer(terminal)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        except ObjectDoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-
-
-class TurnOffTerminal(APIView):
-    # TODO deprecated, use MyTerminalViewSet
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request, format=None):
-        try:
-            terminal = Terminal.objects.get(owner=request.user.id)
-            terminal.is_on = False
-            terminal.is_playing = False
-            terminal.save()
-            serializer = LightTerminalSerializer(terminal)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        except ObjectDoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-
-
-class PlayingOnTerminal(APIView):
-    # TODO deprecated, use MyTerminalViewSet
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request, format=None):
-        try:
-            terminal = Terminal.objects.get(owner=request.user.id)
-            terminal.is_playing = True
-            terminal.save()
-            serializer = LightTerminalSerializer(terminal)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        except ObjectDoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-
-
-class PlayingOffTerminal(APIView):
-    # TODO deprecated, use MyTerminalViewSet
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request, format=None):
-        try:
-            terminal = Terminal.objects.get(owner=request.user.id)
-            terminal.is_playing = False
-            terminal.save()
-            serializer = LightTerminalSerializer(terminal)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        except ObjectDoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
 
 
 class _DonatorSerializer(serializers.ModelSerializer):
