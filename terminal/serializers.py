@@ -73,7 +73,7 @@ class FullTerminalSerializer(serializers.ModelSerializer):
     (including terminal owner, terminal customer, all screensavers...)
     """
 
-    owner = _SimpleUserSerializer(read_only=True)
+    owner = _SimpleUserSerializer()
     owner_id = serializers.PrimaryKeyRelatedField(
         queryset=User.objects.all(), write_only=True, source="owner", required=False
     )
