@@ -24,7 +24,7 @@ SENTRY_DNS = "https://18d97624724c449fafa3ec74902edf8a@o4504979791085568.ingest.
 
 sentry_sdk.init(
     dsn=SENTRY_DNS,
-    environment="production",
+    environment=os.environ["SENTRY_ENV"],
     integrations=[
         DjangoIntegration(),
     ],

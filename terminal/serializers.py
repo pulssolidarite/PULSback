@@ -19,7 +19,10 @@ from .models import Terminal, Donator, Session, Payment
 class _GameSerializer(serializers.ModelSerializer):
     class Meta:
         model = Game
-        fields = "__all__"
+        fields = (
+            "id",
+            "name",
+        )
 
 
 # Serializer pour le model Donator
@@ -32,7 +35,10 @@ class _DonatorSerializer(serializers.ModelSerializer):
 class _CampaignSerializer(serializers.ModelSerializer):
     class Meta:
         model = Campaign
-        fields = "__all__"
+        fields = (
+            "id",
+            "name",
+        )
 
 
 class PaymentForTerminalSerializer(serializers.ModelSerializer):
@@ -45,6 +51,19 @@ class PaymentForTerminalSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class _UserWithUsernameSerializer(serializers.ModelSerializer):
+    """
+    Serializer pour le model User
+    """
+
+    class Meta:
+        model = User
+        fields = (
+            "id",
+            "username",
+        )
+
+
 # Serializer pour le model Terminal
 class FullTerminalSerializer(serializers.ModelSerializer):
     """
@@ -53,7 +72,7 @@ class FullTerminalSerializer(serializers.ModelSerializer):
     (including terminal owner, terminal customer, all screensavers...)
     """
 
-    owner = UserSerializer(read_only=True)
+    owner = _UserWithUsernameSerializer(read_only=True)
     owner_id = serializers.PrimaryKeyRelatedField(
         queryset=User.objects.all(), write_only=True, source="owner", required=False
     )
@@ -66,14 +85,14 @@ class FullTerminalSerializer(serializers.ModelSerializer):
         required=False,
     )
 
-    campaigns = CampaignSerializer(many=True, read_only=True)
+    campaigns = _CampaignSerializer(many=True, read_only=True)
     campaign_ids = serializers.PrimaryKeyRelatedField(
-        queryset=Campaign.objects.all(), many=True, write_only=True, source="campaigns"
+        queryset=Campaign.objects.all(), many=True, source="campaigns"
     )
 
     games = _GameSerializer(many=True, read_only=True)
     game_ids = serializers.PrimaryKeyRelatedField(
-        queryset=Game.objects.all(), many=True, write_only=True, source="games"
+        queryset=Game.objects.all(), many=True, source="games"
     )
 
     payment_terminal = serializers.CharField(allow_null=True)
