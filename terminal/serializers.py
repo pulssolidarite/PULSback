@@ -6,7 +6,6 @@ from screensaver.serializers.screensaver_broadcast import ScreenSaverBroadcastSe
 from fleet.models import Campaign, Customer, User
 from fleet.serializers import (
     CampaignSerializer,
-    UserSerializer,
     CustomerSerializer,
     UserSerializerWithCustomer,
 )
@@ -51,7 +50,7 @@ class PaymentForTerminalSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class _UserWithUsernameSerializer(serializers.ModelSerializer):
+class _SimpleUserSerializer(serializers.ModelSerializer):
     """
     Serializer pour le model User
     """
@@ -61,7 +60,9 @@ class _UserWithUsernameSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "username",
+            "password",
         )
+        extra_kwargs = {"id": {"read_only": True}, "password": {"write_only": True}}
 
 
 # Serializer pour le model Terminal
@@ -72,7 +73,7 @@ class FullTerminalSerializer(serializers.ModelSerializer):
     (including terminal owner, terminal customer, all screensavers...)
     """
 
-    owner = _UserWithUsernameSerializer(read_only=True)
+    owner = _SimpleUserSerializer()
     owner_id = serializers.PrimaryKeyRelatedField(
         queryset=User.objects.all(), write_only=True, source="owner", required=False
     )
@@ -87,12 +88,12 @@ class FullTerminalSerializer(serializers.ModelSerializer):
 
     campaigns = _CampaignSerializer(many=True, read_only=True)
     campaign_ids = serializers.PrimaryKeyRelatedField(
-        queryset=Campaign.objects.all(), many=True, source="campaigns"
+        queryset=Campaign.objects.all(), many=True, source="campaigns", required=False
     )
 
     games = _GameSerializer(many=True, read_only=True)
     game_ids = serializers.PrimaryKeyRelatedField(
-        queryset=Game.objects.all(), many=True, source="games"
+        queryset=Game.objects.all(), many=True, source="games", required=False
     )
 
     payment_terminal = serializers.CharField(allow_null=True)
@@ -157,7 +158,7 @@ class FullTerminalSerializer(serializers.ModelSerializer):
 
         if owner is not None and not isinstance(owner, User):
             # Create new owner
-            owner_serializer = UserSerializer(data=owner)
+            owner_serializer = _SimpleUserSerializer(data=owner)
             if not owner_serializer.is_valid():
                 raise ValidationError(owner_serializer.errors)
             owner = owner_serializer.save()
