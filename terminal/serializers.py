@@ -6,7 +6,6 @@ from screensaver.serializers.screensaver_broadcast import ScreenSaverBroadcastSe
 from fleet.models import Campaign, Customer, User
 from fleet.serializers import (
     CampaignSerializer,
-    UserSerializer,
     CustomerSerializer,
     UserSerializerWithCustomer,
 )
