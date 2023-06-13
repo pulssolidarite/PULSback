@@ -60,7 +60,7 @@ class _UserWithUsernameSerializer(serializers.ModelSerializer):
         model = User
         fields = (
             "id",
-            "usename",
+            "username",
         )
 
 
