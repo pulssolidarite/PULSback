@@ -87,12 +87,12 @@ class FullTerminalSerializer(serializers.ModelSerializer):
 
     campaigns = _CampaignSerializer(many=True, read_only=True)
     campaign_ids = serializers.PrimaryKeyRelatedField(
-        queryset=Campaign.objects.all(), many=True, write_only=True, source="campaigns"
+        queryset=Campaign.objects.all(), many=True, source="campaigns"
     )
 
     games = _GameSerializer(many=True, read_only=True)
     game_ids = serializers.PrimaryKeyRelatedField(
-        queryset=Game.objects.all(), many=True, write_only=True, source="games"
+        queryset=Game.objects.all(), many=True, source="games"
     )
 
     payment_terminal = serializers.CharField(allow_null=True)
