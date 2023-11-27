@@ -54,6 +54,8 @@ class _TerminalSerializerForListing(serializers.ModelSerializer):
             "version",
             "total_donations",
             "games",
+            "check_for_updates",
+            "restart",
         )
 
 
@@ -178,10 +180,10 @@ class TerminalViewSet(viewsets.ModelViewSet):
         Endpoint to retrieve commands to execute on terminal
         """
         terminal: Terminal = self.get_object()
-        return Response(
-            {
-                "check_for_updates": terminal.check_for_updates,
-                "restart": terminal.restart,
-            },
-            status=status.HTTP_200_OK,
-        )
+
+        commands = []
+
+        if terminal.restart:
+            commands.append("sudo reboot")
+
+        return Response({"commands": commands})
