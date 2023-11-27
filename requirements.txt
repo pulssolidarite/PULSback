@@ -1,16 +1,34 @@
-asgiref==3.2.3
-boto3==1.24.70
-botocore==1.27.70
-dj-database-url==0.5.0
+# Django
+
 Django==3.0.3
 django-cors-headers==3.2.0
 django-heroku==0.3.1
 django-storages==1.8
+
+# Django Rest Framework
+
 djangorestframework==3.10.3
 djangorestframework-simplejwt==4.5.0
+
+# Devops
+
+gunicorn==20.0.4
+
+# Linting and formatting
+
+pylint==3.0.0 # For linting python code
+pylint-django==2.5.2 # Complete pylint with more support for Django
+black==23.11.0
+isort==5.12.0 # Automatically sort imports in python code
+
+# Other stuffs
+
+asgiref==3.2.3
+boto3==1.24.70
+botocore==1.27.70
+dj-database-url==0.5.0
 docutils==0.15.2
 et-xmlfile==1.1.0
-gunicorn==20.0.4
 jmespath==0.9.4
 numpy==1.24.3
 openpyxl==3.0.9

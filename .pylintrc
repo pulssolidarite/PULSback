@@ -1,0 +1,5 @@
+[MASTER]
+disable=C0114,C0115,C0116 # Missing module Docstring, Missing class Doctstring, Missing function or method docstring
+
+[TYPECHECK]
+load-plugins=pylint_django
