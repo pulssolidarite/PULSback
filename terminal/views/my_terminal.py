@@ -228,3 +228,19 @@ class MyTerminalViewSet(GenericViewSet):
             return Response(
                 status=status.HTTP_404_NOT_FOUND, data={"error": "Terminal not found"}
             )
+        
+    @action(detail=False, methods=["post"])
+    def hera_flask_logs(self, request):
+        """
+        Endpoint to save logs from Hera Flask
+        """
+        try:
+            terminal = Terminal.objects.get(owner=request.user.id)
+
+            return Response()
+
+        except ObjectDoesNotExist:
+            return Response(
+                status=status.HTTP_404_NOT_FOUND, data={"error": "Terminal not found"}
+            )
+
