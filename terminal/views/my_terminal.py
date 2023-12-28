@@ -221,6 +221,8 @@ class MyTerminalViewSet(GenericViewSet):
 
             if terminal.restart:
                 commands.append("sudo reboot")
+                terminal.restart = False
+                terminal.save()
 
             return Response({"commands": commands})
 
@@ -228,7 +230,7 @@ class MyTerminalViewSet(GenericViewSet):
             return Response(
                 status=status.HTTP_404_NOT_FOUND, data={"error": "Terminal not found"}
             )
-        
+
     @action(detail=False, methods=["post"])
     def hera_flask_logs(self, request):
         """
@@ -243,4 +245,3 @@ class MyTerminalViewSet(GenericViewSet):
             return Response(
                 status=status.HTTP_404_NOT_FOUND, data={"error": "Terminal not found"}
             )
-
