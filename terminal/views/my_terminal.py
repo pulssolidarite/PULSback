@@ -217,7 +217,7 @@ class MyTerminalViewSet(GenericViewSet):
         try:
             terminal = Terminal.objects.get(owner=request.user.id)
 
-            commands = ["source devops/update.sh"]
+            commands = []
 
             if terminal.restart:
                 commands.append("sudo reboot")
@@ -238,6 +238,8 @@ class MyTerminalViewSet(GenericViewSet):
         """
         try:
             terminal = Terminal.objects.get(owner=request.user.id)
+
+            # TODO: Save logs
 
             return Response()
 
