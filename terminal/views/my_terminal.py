@@ -192,8 +192,8 @@ class MyTerminalViewSet(GenericViewSet):
         except ObjectDoesNotExist:
             status = status.HTTP_404_NOT_FOUND, data = {"error": "Terminal not found"}
 
-    @action(detail=True, methods=["post"])
-    def restart(self, request, pk):  # pylint: disable=unused-argument
+    @action(detail=False, methods=["post"])
+    def restart(self, request):
         """
         Endpoint to restart terminak
         """
@@ -209,8 +209,8 @@ class MyTerminalViewSet(GenericViewSet):
                 status=status.HTTP_404_NOT_FOUND, data={"error": "Terminal not found"}
             )
 
-    @action(detail=True, methods=["get"])
-    def commands(self, request, pk):  # pylint: disable=unused-argument
+    @action(detail=False, methods=["get"])
+    def commands(self, request):
         """
         Endpoint to retrieve commands to execute on terminal
         """
