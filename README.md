@@ -108,6 +108,8 @@ pip install -r requirements.txt
 
 Create a file backend > local_settings.py
 
+Remplissez le avec les settings du fichier backend > settings.py mais en adaptant pour travailler en local.
+
 #### Run the app
 
 ```bash

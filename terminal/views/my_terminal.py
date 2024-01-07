@@ -109,7 +109,7 @@ class MyTerminalViewSet(GenericViewSet):
             )
 
         except ObjectDoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+            status = status.HTTP_404_NOT_FOUND, data = {"error": "Terminal not found"}
 
     @action(detail=False, methods=["post"])
     def turn_on(self, request):
@@ -123,7 +123,7 @@ class MyTerminalViewSet(GenericViewSet):
             return Response()
 
         except ObjectDoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+            status = status.HTTP_404_NOT_FOUND, data = {"error": "Terminal not found"}
 
     @action(detail=False, methods=["post"])
     def is_running(self, request):
@@ -147,7 +147,7 @@ class MyTerminalViewSet(GenericViewSet):
             )
 
         except ObjectDoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+            status = status.HTTP_404_NOT_FOUND, data = {"error": "Terminal not found"}
 
     @action(detail=False, methods=["post"])
     def start_playing(self, request):
@@ -161,7 +161,7 @@ class MyTerminalViewSet(GenericViewSet):
             return Response()
 
         except ObjectDoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+            status = status.HTTP_404_NOT_FOUND, data = {"error": "Terminal not found"}
 
     @action(detail=False, methods=["post"])
     def stop_playing(self, request):
@@ -175,7 +175,7 @@ class MyTerminalViewSet(GenericViewSet):
             return Response()
 
         except ObjectDoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+            status = status.HTTP_404_NOT_FOUND, data = {"error": "Terminal not found"}
 
     @action(detail=False, methods=["post"])
     def turn_off(self, request):
@@ -190,4 +190,60 @@ class MyTerminalViewSet(GenericViewSet):
             return Response()
 
         except ObjectDoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+            status = status.HTTP_404_NOT_FOUND, data = {"error": "Terminal not found"}
+
+    @action(detail=False, methods=["post"])
+    def restart(self, request):
+        """
+        Endpoint to restart terminak
+        """
+        try:
+            terminal = Terminal.objects.get(owner=request.user.id)
+            terminal.restart = True
+            terminal.save()
+
+            return Response()
+
+        except ObjectDoesNotExist:
+            return Response(
+                status=status.HTTP_404_NOT_FOUND, data={"error": "Terminal not found"}
+            )
+
+    @action(detail=False, methods=["get"])
+    def commands(self, request):
+        """
+        Endpoint to retrieve commands to execute on terminal
+        """
+        try:
+            terminal = Terminal.objects.get(owner=request.user.id)
+
+            commands = []
+
+            if terminal.restart:
+                commands.append("sudo reboot")
+                terminal.restart = False
+                terminal.save()
+
+            return Response({"commands": commands})
+
+        except ObjectDoesNotExist:
+            return Response(
+                status=status.HTTP_404_NOT_FOUND, data={"error": "Terminal not found"}
+            )
+
+    @action(detail=False, methods=["post"])
+    def hera_flask_logs(self, request):
+        """
+        Endpoint to save logs from Hera Flask
+        """
+        try:
+            terminal = Terminal.objects.get(owner=request.user.id)
+
+            # TODO: Save logs
+
+            return Response()
+
+        except ObjectDoesNotExist:
+            return Response(
+                status=status.HTTP_404_NOT_FOUND, data={"error": "Terminal not found"}
+            )

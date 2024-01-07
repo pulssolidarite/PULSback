@@ -1,5 +1,4 @@
 from django.core.exceptions import PermissionDenied
-from django.shortcuts import get_object_or_404
 
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework import status, viewsets, serializers
@@ -7,7 +6,6 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 
 from fleet.models import User, Campaign, Customer
-from fleet.serializers import CampaignSerializer
 
 from backend.permissions import IsAdminOrCustomerUser
 
@@ -18,12 +16,6 @@ from terminal.serializers import (
 )
 
 from game.models import Game
-
-
-class _GameSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Game
-        fields = "__all__"
 
 
 class _CampaignSerializerNameOnly(serializers.ModelSerializer):
@@ -62,6 +54,8 @@ class _TerminalSerializerForListing(serializers.ModelSerializer):
             "version",
             "total_donations",
             "games",
+            "check_for_updates",
+            "restart",
         )
 
 
@@ -89,8 +83,8 @@ class TerminalViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         """
-        Allow admin and customers to list, retrieve and update but only admin to do any other actions
-
+        Allow admin and customers to list, retrieve and update
+        but only admin to do any other actions
         """
         if (
             self.action == "list"
@@ -102,7 +96,7 @@ class TerminalViewSet(viewsets.ModelViewSet):
             permission_classes = [IsAuthenticated, IsAdminUser]
         return [permission() for permission in permission_classes]
 
-    def list(self, request):
+    def list(self, request, *args, **kwargs):  # pylint: disable=unused-argument
         is_active = request.query_params.get("is_active", None)
         is_on = request.query_params.get("is_on", None)
         is_playing = request.query_params.get("is_playing", None)
@@ -126,8 +120,8 @@ class TerminalViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     @action(detail=True, methods=["get", "post"])
-    def activate(self, request, pk, format=None):
-        terminal: Terminal = get_object_or_404(self.get_queryset(), pk=pk)
+    def activate(self, request, pk):  # pylint: disable=unused-argument
+        terminal: Terminal = self.get_object()
         terminal.is_active = True
         terminal.owner.is_active = True
         terminal.save()
@@ -136,8 +130,8 @@ class TerminalViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["get", "post"])
-    def deactivate(self, request, pk, format=None):
-        terminal: Terminal = get_object_or_404(self.get_queryset(), pk=pk)
+    def deactivate(self, request, pk):  # pylint: disable=unused-argument
+        terminal: Terminal = self.get_object()
         terminal.is_active = False
         terminal.owner.is_active = False
         terminal.is_on = False
@@ -148,8 +142,8 @@ class TerminalViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["get", "post"])
-    def archive(self, request, pk, format=None):
-        terminal: Terminal = get_object_or_404(self.get_queryset(), pk=pk)
+    def archive(self, request, pk):  # pylint: disable=unused-argument
+        terminal: Terminal = self.get_object()
         terminal.is_active = False
         terminal.owner.is_active = False
         terminal.is_archived = True
@@ -159,29 +153,37 @@ class TerminalViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["post"])
-    def check_for_updates(self, request, pk, format=None):
-        terminal: Terminal = get_object_or_404(self.get_queryset(), pk=pk)
+    def check_for_updates(self, request, pk):  # pylint: disable=unused-argument
+        """
+        Endpoint to check for updates
+        """
+        terminal: Terminal = self.get_object()
         terminal.check_for_updates = True
         terminal.save()
         serializer = FullTerminalSerializer(terminal)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    """
-    @action(detail=True, methods=["get"])
-    def campaigns(self, request, pk, format=None):
-        terminal: Terminal = get_object_or_404(self.get_queryset(), pk=pk)
-        campaigns = terminal.campains
-        serializer = CampaignSerializer(
-            campaigns, many=True, context={"request": request}
-        )
+    @action(detail=True, methods=["post"])
+    def restart(self, request, pk):  # pylint: disable=unused-argument
+        """
+        Endpoint to restart terminak
+        """
+        terminal: Terminal = self.get_object()
+        terminal.restart = True
+        terminal.save()
+        serializer = FullTerminalSerializer(terminal)
         return Response(serializer.data, status=status.HTTP_200_OK)
-    """
 
-    """
     @action(detail=True, methods=["get"])
-    def games(self, request, pk, format=None):
-        terminal: Terminal = get_object_or_404(self.get_queryset(), pk=pk)
-        games = terminal.games
-        games = _GameSerializer(games, many=True, context={"request": request})
-        return Response(games.data, status=status.HTTP_200_OK)
-    """
+    def commands(self, request, pk):  # pylint: disable=unused-argument
+        """
+        Endpoint to retrieve commands to execute on terminal
+        """
+        terminal: Terminal = self.get_object()
+
+        commands = []
+
+        if terminal.restart:
+            commands.append("sudo reboot")
+
+        return Response({"commands": commands})
