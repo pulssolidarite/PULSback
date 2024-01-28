@@ -1,4 +1,5 @@
 import datetime
+from tabnanny import verbose
 
 import pytz
 from django.conf import settings
@@ -16,27 +17,44 @@ from .session import Session
 
 
 class Terminal(models.Model):
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, verbose_name="Nom")
 
     owner = models.OneToOneField(
-        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="terminal"
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="terminal",
+        verbose_name="Propriétaire",
     )  # User to authenticate terminal TODO rename into user
+
     customer = models.ForeignKey(
-        Customer, on_delete=models.PROTECT, related_name="terminals"
+        Customer,
+        on_delete=models.PROTECT,
+        related_name="terminals",
+        verbose_name="Client",
     )  # Customer who own this terminal
 
-    campaigns = models.ManyToManyField(Campaign, related_name="terminals")
-    games = models.ManyToManyField(Game, related_name="terminals")
-    location = models.CharField(max_length=255, null=True, blank=True)
-    play_timer = models.BigIntegerField(default=10)  # Time (in minutes)
-    free_mode_text = models.CharField(max_length=250, blank=True, null=True)
+    campaigns = models.ManyToManyField(
+        Campaign, related_name="terminals", verbose_name="Campagnes"
+    )
+    games = models.ManyToManyField(Game, related_name="terminals", verbose_name="Jeux")
+    location = models.CharField(
+        max_length=255, null=True, blank=True, verbose_name="Emplacement"
+    )
+    play_timer = models.BigIntegerField(
+        default=10, verbose_name="Temps de jeu", help_text="En minutes"
+    )  # Time (in minutes)
+    free_mode_text = models.CharField(
+        max_length=250, blank=True, null=True, verbose_name="Texte du mode libre"
+    )
 
     # Status
-    is_active = models.BooleanField(default=False)
-    is_on = models.BooleanField(default=False)
-    is_playing = models.BooleanField(default=False)
-    version = models.CharField(max_length=10, null=True, blank=True)
-    is_archived = models.BooleanField(default=False)
+    version = models.CharField(
+        max_length=10, null=True, blank=True, verbose_name="Version Hera"
+    )
+    is_active = models.BooleanField(default=False, verbose_name="Actif")
+    is_on = models.BooleanField(default=False, verbose_name="Allumée")
+    is_playing = models.BooleanField(default=False, verbose_name="En jeu")
+    is_archived = models.BooleanField(default=False, verbose_name="Archivée")
 
     # Commands
     check_for_updates = models.BooleanField(
