@@ -106,7 +106,7 @@ class Terminal(models.Model):
     donation_default_amount = models.IntegerField(default=1)
     donation_max_amount = models.IntegerField(default=50)
     donation_formula = models.CharField(
-        max_length=250, null=True, choices=DONATION_FORMULAS
+        max_length=250, null=True, choices=DONATION_FORMULAS, verbose_name="Formule"
     )  # TODO set non nullable
     donation_share = models.IntegerField(
         default=50,
@@ -114,7 +114,9 @@ class Terminal(models.Model):
             MaxValueValidator(50),
             MinValueValidator(0),
         ],
-    )  # How much per cent of the donation go to the owner of the terminal (only if donation_formula == 'Partage')
+        verbose_name="Taux de partage",
+        help_text="En % du montant de la donation reversé au propriétaire de la borne. Seulement si la borne est en formule 'Partage'.",
+    )
 
     class Meta:
         verbose_name = "Borne"
