@@ -1,18 +1,16 @@
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from screensaver.serializers.screensaver_broadcast import ScreenSaverBroadcastSerializer
-
 from fleet.models import Campaign, Customer, User
 from fleet.serializers import (
     CampaignSerializer,
     CustomerSerializer,
     UserSerializerWithCustomer,
 )
-
 from game.models import Game
+from screensaver.serializers.screensaver_broadcast import ScreenSaverBroadcastSerializer
 
-from .models import Terminal, Donator, Session, Payment
+from .models import Donator, Payment, Session, Terminal
 
 
 class _GameSerializer(serializers.ModelSerializer):
@@ -205,7 +203,7 @@ class LightTerminalSerializer(serializers.ModelSerializer):
     screensaver_broadcasts = ScreenSaverBroadcastSerializer(
         many=True,
         read_only=True,
-        source="visible_screensaver_broadcasts",
+        source="get_visible_screensaver_broadcasts",
     )
 
     class _CustomerSerializer(serializers.ModelSerializer):

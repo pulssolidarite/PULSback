@@ -1,11 +1,13 @@
 import datetime
+import imp
 from tabnanny import verbose
+from typing import TYPE_CHECKING
 
 import pytz
 from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.db.models import Avg, Sum
+from django.db.models import Avg, QuerySet, Sum
 from django.utils import timezone
 
 from backend.common import DONATION_FORMULAS
@@ -14,6 +16,9 @@ from game.models import Game
 
 from .payment import Payment
 from .session import Session
+
+if TYPE_CHECKING:
+    from screensaver.models import ScreensaverBroadcast
 
 
 class Terminal(models.Model):
@@ -132,9 +137,7 @@ class Terminal(models.Model):
             self.pk, "Active" if self.is_active else "False"
         )
 
-    @property
-    def visible_screensaver_broadcasts(self):
-        return self.screensaver_broadcasts.filter(visible=True)
+    # Properties
 
     @property
     def subscription_type(self):
@@ -195,19 +198,21 @@ class Terminal(models.Model):
             start_time: datetime.time,
             end_time: datetime.time,
         ):
+            offset_naive_datetime = _datetime.replace(tzinfo=None)
+
             start_datetime = datetime.datetime.combine(
                 datetime.date.today(), start_time
             )
 
             end_datetime = datetime.datetime.combine(datetime.date.today(), end_time)
 
-            if start_datetime <= _datetime <= end_datetime:
+            if start_datetime <= offset_naive_datetime <= end_datetime:
                 return True
 
             elif start_datetime > end_datetime:
-                if _datetime.date() == datetime.date.today() and (
-                    _datetime.time() >= start_datetime.time()
-                    or _datetime.time() <= end_datetime.time()
+                if offset_naive_datetime.date() == datetime.date.today() and (
+                    offset_naive_datetime.time() >= start_datetime.time()
+                    or offset_naive_datetime.time() <= end_datetime.time()
                 ):
                     return True
 
@@ -230,3 +235,11 @@ class Terminal(models.Model):
                 )
 
         return False
+
+    # Getters
+
+    def get_screensaver_broadcasts(self) -> QuerySet["ScreensaverBroadcast"]:
+        return self.screensaver_broadcasts  # type: ignore
+
+    def get_visible_screensaver_broadcasts(self) -> QuerySet["ScreensaverBroadcast"]:
+        return self.get_screensaver_broadcasts().filter(visible=True)

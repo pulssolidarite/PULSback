@@ -65,7 +65,7 @@ class LightTerminalSerializer(serializers.ModelSerializer):
     screensaver_broadcasts = ScreenSaverBroadcastSerializer(
         many=True,
         read_only=True,
-        source="visible_screensaver_broadcasts",
+        source="get_visible_screensaver_broadcasts",
     )
 
     class _CustomerSerializer(serializers.ModelSerializer):
