@@ -1,14 +1,10 @@
 import datetime
-import imp
-from tabnanny import verbose
 from typing import TYPE_CHECKING
 
-import pytz
 from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Avg, QuerySet, Sum
-from django.utils import timezone
 
 from backend.common import DONATION_FORMULAS
 from fleet.models import Campaign, Customer
@@ -238,8 +234,8 @@ class Terminal(models.Model):
 
     # Getters
 
-    def get_screensaver_broadcasts(self) -> QuerySet["ScreensaverBroadcast"]:
+    def get_screensaver_broadcasts(self) -> QuerySet:
         return self.screensaver_broadcasts  # type: ignore
 
-    def get_visible_screensaver_broadcasts(self) -> QuerySet["ScreensaverBroadcast"]:
+    def get_visible_screensaver_broadcasts(self) -> QuerySet:
         return self.get_screensaver_broadcasts().filter(visible=True)

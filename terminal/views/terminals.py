@@ -1,21 +1,14 @@
 from django.core.exceptions import PermissionDenied
-
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
-from rest_framework import status, viewsets, serializers
-from rest_framework.response import Response
+from rest_framework import serializers, status, viewsets
 from rest_framework.decorators import action
-
-from fleet.models import User, Campaign, Customer
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
+from rest_framework.response import Response
 
 from backend.permissions import IsAdminOrCustomerUser
-
-from terminal.models import Terminal
-
-from terminal.serializers import (
-    FullTerminalSerializer,
-)
-
+from fleet.models import Campaign, Customer, User
 from game.models import Game
+from terminal.models import Terminal
+from terminal.serializers import FullTerminalSerializer
 
 
 class _CampaignSerializerNameOnly(serializers.ModelSerializer):
@@ -68,7 +61,7 @@ class TerminalViewSet(viewsets.ModelViewSet):
     serializer_class = FullTerminalSerializer
 
     def get_queryset(self):
-        user: User = self.request.user
+        user: User = self.request.user  # type: ignore
 
         if user.is_customer_user():
             return Terminal.objects.filter(
