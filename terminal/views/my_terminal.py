@@ -1,3 +1,5 @@
+import datetime
+
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
 from rest_framework import serializers, status
@@ -230,7 +232,7 @@ class MyTerminalViewSet(GenericViewSet):
             if terminal.should_restart:
                 commands.append("sudo reboot")
                 terminal.restart = False
-                terminal.last_restarted = timezone.now()
+                terminal.last_restarted = datetime.datetime.utcnow()
                 terminal.save()
 
             return Response({"commands": commands})

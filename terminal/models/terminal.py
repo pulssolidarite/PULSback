@@ -67,14 +67,19 @@ class Terminal(models.Model):
         null=True,
         blank=True,
         verbose_name="Redémarrer borne tous les jours à partir de",
+        help_text="Heure UTC",
     )
     restart_every_day_until = models.TimeField(
-        null=True, blank=True, verbose_name="Redémarrer borne tous les jours jusqu'à"
+        null=True,
+        blank=True,
+        verbose_name="Redémarrer borne tous les jours jusqu'à",
+        help_text="Heure UTC",
     )
     last_restarted = models.DateTimeField(
         null=True,
         blank=True,
         verbose_name="Borne redémarrée pour la dernière fois le",
+        help_text="Heure UTC",
         editable=False,
     )
 
@@ -204,7 +209,7 @@ class Terminal(models.Model):
 
         if self.restart_every_day_from and self.restart_every_day_until:
             if is_datetime_between_times(
-                datetime.datetime.now(),
+                datetime.datetime.utcnow(),
                 self.restart_every_day_from,
                 self.restart_every_day_until,
             ):
