@@ -58,7 +58,10 @@ class TerminalAdmin(admin.ModelAdmin):
 
     # Form view
 
-    readonly_fields = ("last_restarted",)
+    readonly_fields = (
+        # "last_restarted",
+        "should_restart",
+    )
 
     fieldsets = (
         (
@@ -137,6 +140,7 @@ class TerminalAdmin(admin.ModelAdmin):
                     "restart_every_day_from",
                     "restart_every_day_until",
                     "last_restarted",
+                    "should_restart",
                 )
             },
         ),

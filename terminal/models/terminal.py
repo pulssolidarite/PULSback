@@ -57,30 +57,35 @@ class Terminal(models.Model):
     is_archived = models.BooleanField(default=False, verbose_name="Archivée")
 
     # Commands
+
     check_for_updates = models.BooleanField(
         default=False, verbose_name="Forcer MAJ Hera"
     )
+
     restart = models.BooleanField(
         default=False, verbose_name="Redémarrer borne une fois"
     )
+
     restart_every_day_from = models.TimeField(
         null=True,
         blank=True,
         verbose_name="Redémarrer borne tous les jours à partir de",
         help_text="Heure UTC",
     )
+
     restart_every_day_until = models.TimeField(
         null=True,
         blank=True,
         verbose_name="Redémarrer borne tous les jours jusqu'à",
         help_text="Heure UTC",
     )
+
     last_restarted = models.DateTimeField(
         null=True,
         blank=True,
         verbose_name="Borne redémarrée pour la dernière fois le",
         help_text="Heure UTC",
-        editable=False,
+        editable=True,
     )
 
     # Payment terminal
