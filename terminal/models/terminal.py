@@ -86,7 +86,7 @@ class Terminal(models.Model):
         blank=True,
         verbose_name="Borne redémarrée pour la dernière fois le",
         help_text="Heure UTC",
-        editable=True,
+        editable=False,
     )
 
     # Payment terminal

@@ -19,10 +19,13 @@ class TerminalAdmin(admin.ModelAdmin):
         "version",
         "check_for_updates",
         "restart",
-        "restart_every_day_from",
-        "restart_every_day_until",
-        "_should_restart_now",
+        "_restart_every_day",
     )
+
+    def _restart_every_day(self, obj):
+        if obj.restart_every_day_from and obj.restart_every_day_until:
+            return f"Entre {obj.restart_every_day_from} et {obj.restart_every_day_until} UTC"
+        return None
 
     actions = [
         "_request_check_for_updates",
@@ -34,12 +37,6 @@ class TerminalAdmin(admin.ModelAdmin):
             terminal.save()
 
     _request_check_for_updates.short_description = "Forcer MAJ Hera"
-
-    def _should_restart_now(self, terminal):
-        return terminal.should_restart
-
-    _should_restart_now.short_description = "Doit redémarrer maintenant"
-    _should_restart_now.boolean = True
 
     list_filter = (
         "name",
@@ -54,10 +51,7 @@ class TerminalAdmin(admin.ModelAdmin):
 
     # Form view
 
-    readonly_fields = (
-        # "last_restarted",
-        "should_restart",
-    )
+    readonly_fields = ("last_restarted",)
 
     fieldsets = (
         (
@@ -136,7 +130,6 @@ class TerminalAdmin(admin.ModelAdmin):
                     "restart_every_day_from",
                     "restart_every_day_until",
                     "last_restarted",
-                    "should_restart",
                 )
             },
         ),
