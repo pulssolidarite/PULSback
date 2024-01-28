@@ -1,5 +1,6 @@
 import datetime
 
+import pytz
 from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
@@ -88,6 +89,15 @@ class Terminal(models.Model):
         ],
     )  # How much per cent of the donation go to the owner of the terminal (only if donation_formula == 'Partage')
 
+    class Meta:
+        verbose_name = "Borne"
+        verbose_name_plural = "Bornes"
+
+    def __str__(self):
+        return "Terminal {} : {}".format(
+            self.pk, "Active" if self.is_active else "False"
+        )
+
     @property
     def visible_screensaver_broadcasts(self):
         return self.screensaver_broadcasts.filter(visible=True)
@@ -144,43 +154,35 @@ class Terminal(models.Model):
             )
         return ts_game_string
 
-    def __str__(self):
-        return "Terminal {} : {}".format(
-            self.pk, "Active" if self.is_active else "False"
-        )
-
     @property
     def should_restart(self):
+        def is_datetime_between_times(
+            _datetime: datetime.datetime,
+            start_time: datetime.time,
+            end_time: datetime.time,
+        ):
+            start_datetime = datetime.datetime.combine(
+                datetime.date.today(), start_time
+            )
+
+            end_datetime = datetime.datetime.combine(datetime.date.today(), end_time)
+
+            if start_datetime <= _datetime <= end_datetime:
+                return True
+
+            elif start_datetime > end_datetime:
+                if _datetime.date() == datetime.date.today() and (
+                    _datetime.time() >= start_datetime.time()
+                    or _datetime.time() <= end_datetime.time()
+                ):
+                    return True
+
         if self.restart:
             return True
 
         if self.restart_every_day_from and self.restart_every_day_until:
-
-            def is_datetime_between_times(
-                _datetime: datetime.datetime,
-                start_time: datetime.time,
-                end_time: datetime.time,
-            ):
-                restart_today_from = datetime.datetime.combine(
-                    datetime.date.today(), start_time
-                )
-
-                restart_today_until = datetime.datetime.combine(
-                    datetime.date.today(), end_time
-                )
-
-                if restart_today_from <= _datetime <= restart_today_until:
-                    return True
-
-                elif restart_today_from > restart_today_until:
-                    if _datetime.date() == datetime.date.today() and (
-                        _datetime.time() >= restart_today_from.time()
-                        or _datetime.time() <= restart_today_until.time()
-                    ):
-                        return True
-
             if is_datetime_between_times(
-                timezone.now(),
+                datetime.datetime.now(),
                 self.restart_every_day_from,
                 self.restart_every_day_until,
             ):

@@ -49,6 +49,7 @@ class TerminalAdmin(admin.ModelAdmin):
         return terminal.should_restart
 
     _should_restart_now.short_description = "Doit redémarrer maintenant"
+    _should_restart_now.boolean = True
 
     list_filter = (
         "name",
