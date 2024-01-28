@@ -20,6 +20,7 @@ class TerminalAdmin(admin.ModelAdmin):
         "check_for_updates",
         "restart",
         "_restart_every_day",
+        "last_restarted",
     )
 
     def _restart_every_day(self, obj):
