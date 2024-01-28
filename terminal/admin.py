@@ -21,18 +21,12 @@ class TerminalAdmin(admin.ModelAdmin):
         "is_archived",
         "donation_formula",
         "version",
-        "_check_for_updates",
+        "check_for_updates",
         "restart",
         "restart_every_day_from",
         "restart_every_day_until",
         "_should_restart_now",
     )
-
-    def _check_for_updates(self, terminal):
-        return terminal.check_for_updates
-
-    _check_for_updates.short_description = "Vérification des mises à jours demandée"
-    _check_for_updates.boolean = True
 
     actions = [
         "_request_check_for_updates",
@@ -43,7 +37,7 @@ class TerminalAdmin(admin.ModelAdmin):
             terminal.check_for_updates = True
             terminal.save()
 
-    _request_check_for_updates.short_description = "Vérifier les mises à jours"
+    _request_check_for_updates.short_description = "Forcer MAJ Hera"
 
     def _should_restart_now(self, terminal):
         return terminal.should_restart
@@ -93,7 +87,7 @@ class TerminalAdmin(admin.ModelAdmin):
             },
         ),
         (
-            "TPE général",
+            "TPE",
             {
                 "fields": (
                     "payment_terminal",
@@ -111,7 +105,7 @@ class TerminalAdmin(admin.ModelAdmin):
             },
         ),
         (
-            "Paramétrage des donations",
+            "Donations",
             {
                 "fields": (
                     "donation_formula",
@@ -123,7 +117,7 @@ class TerminalAdmin(admin.ModelAdmin):
             },
         ),
         (
-            "Paramétrage du contenu",
+            "Contenu",
             {
                 "fields": (
                     (

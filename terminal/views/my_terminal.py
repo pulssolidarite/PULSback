@@ -121,7 +121,9 @@ class MyTerminalViewSet(GenericViewSet):
             return Response()
 
         except ObjectDoesNotExist:
-            status = status.HTTP_404_NOT_FOUND, data = {"error": "Terminal not found"}
+            return Response(
+                status=status.HTTP_404_NOT_FOUND, data={"error": "Terminal not found"}
+            )
 
     @action(detail=False, methods=["post"])
     def is_running(self, request):
@@ -145,7 +147,9 @@ class MyTerminalViewSet(GenericViewSet):
             )
 
         except ObjectDoesNotExist:
-            status = status.HTTP_404_NOT_FOUND, data = {"error": "Terminal not found"}
+            return Response(
+                status=status.HTTP_404_NOT_FOUND, data={"error": "Terminal not found"}
+            )
 
     @action(detail=False, methods=["post"])
     def start_playing(self, request):
@@ -192,7 +196,9 @@ class MyTerminalViewSet(GenericViewSet):
             return Response()
 
         except ObjectDoesNotExist:
-            status = status.HTTP_404_NOT_FOUND, data = {"error": "Terminal not found"}
+            Response(
+                status=status.HTTP_404_NOT_FOUND, data={"error": "Terminal not found"}
+            )
 
     @action(detail=False, methods=["post"])
     def restart(self, request):
