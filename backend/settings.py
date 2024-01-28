@@ -10,15 +10,15 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/2.2/ref/settings/
 """
 
-import os
-import django_heroku
 import datetime
+import os
 
+import django_heroku
+import sentry_sdk
+from sentry_sdk.integrations.django import DjangoIntegration
 
 # Sentry
 
-import sentry_sdk
-from sentry_sdk.integrations.django import DjangoIntegration
 
 SENTRY_DNS = "https://18d97624724c449fafa3ec74902edf8a@o4504979791085568.ingest.sentry.io/4504979793117184"
 

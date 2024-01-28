@@ -1,20 +1,16 @@
 from django.core.exceptions import ObjectDoesNotExist
-
-from rest_framework.response import Response
+from django.utils import timezone
+from rest_framework import serializers, status
 from rest_framework.decorators import action
+from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
-from rest_framework import status, serializers
-
-from fleet.models import Customer
-from fleet.serializers import CampaignSerializer
 
 from backend.permissions import TerminalIsAuthenticated
-
-from terminal.models import Terminal
-
-from game.models import CoreFile, BiosFile, Core, Game
-
+from fleet.models import Customer
+from fleet.serializers import CampaignSerializer
+from game.models import BiosFile, Core, CoreFile, Game
 from screensaver.serializers.screensaver_broadcast import ScreenSaverBroadcastSerializer
+from terminal.models import Terminal
 
 
 class _CoreFileSerializer(serializers.ModelSerializer):
@@ -109,7 +105,9 @@ class MyTerminalViewSet(GenericViewSet):
             )
 
         except ObjectDoesNotExist:
-            status = status.HTTP_404_NOT_FOUND, data = {"error": "Terminal not found"}
+            return Response(
+                status=status.HTTP_404_NOT_FOUND, data={"error": "Terminal not found"}
+            )
 
     @action(detail=False, methods=["post"])
     def turn_on(self, request):
@@ -161,7 +159,9 @@ class MyTerminalViewSet(GenericViewSet):
             return Response()
 
         except ObjectDoesNotExist:
-            status = status.HTTP_404_NOT_FOUND, data = {"error": "Terminal not found"}
+            return Response(
+                status=status.HTTP_404_NOT_FOUND, data={"error": "Terminal not found"}
+            )
 
     @action(detail=False, methods=["post"])
     def stop_playing(self, request):
@@ -175,7 +175,9 @@ class MyTerminalViewSet(GenericViewSet):
             return Response()
 
         except ObjectDoesNotExist:
-            status = status.HTTP_404_NOT_FOUND, data = {"error": "Terminal not found"}
+            return Response(
+                status=status.HTTP_404_NOT_FOUND, data={"error": "Terminal not found"}
+            )
 
     @action(detail=False, methods=["post"])
     def turn_off(self, request):
@@ -219,9 +221,10 @@ class MyTerminalViewSet(GenericViewSet):
 
             commands = []
 
-            if terminal.restart:
+            if terminal.should_restart:
                 commands.append("sudo reboot")
                 terminal.restart = False
+                terminal.last_restarted = timezone.now()
                 terminal.save()
 
             return Response({"commands": commands})

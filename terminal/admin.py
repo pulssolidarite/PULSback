@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Terminal, Donator, Session, Payment
+from .models import Donator, Payment, Session, Terminal
 
 # Register your models here.
 admin.site.register(Donator)
@@ -9,7 +9,6 @@ admin.site.register(Session)
 
 @admin.register(Terminal)
 class TerminalAdmin(admin.ModelAdmin):
-
     # List view
 
     list_display = (
@@ -23,6 +22,10 @@ class TerminalAdmin(admin.ModelAdmin):
         "donation_formula",
         "version",
         "_check_for_updates",
+        "restart",
+        "restart_every_day_from",
+        "restart_every_day_until",
+        "_should_restart_now",
     )
 
     def _check_for_updates(self, terminal):
@@ -36,12 +39,16 @@ class TerminalAdmin(admin.ModelAdmin):
     ]
 
     def _request_check_for_updates(self, request, queryset):
-
         for terminal in queryset:
             terminal.check_for_updates = True
             terminal.save()
 
     _request_check_for_updates.short_description = "Vérifier les mises à jours"
+
+    def _should_restart_now(self, terminal):
+        return terminal.should_restart
+
+    _should_restart_now.short_description = "Doit redémarrer maintenant"
 
     list_filter = (
         "name",
@@ -125,12 +132,21 @@ class TerminalAdmin(admin.ModelAdmin):
                 )
             },
         ),
+        (
+            "Paramétrage des redémarrages",
+            {
+                "fields": (
+                    "restart",
+                    "restart_every_day_from",
+                    "restart_every_day_until",
+                )
+            },
+        ),
     )
 
 
 @admin.register(Payment)
 class PaymentAdmin(admin.ModelAdmin):
-
     # List view
 
     list_display = (

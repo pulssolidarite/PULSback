@@ -1,11 +1,14 @@
-from django.db import models
-from django.db.models import Avg, Sum
+import datetime
+
 from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
+from django.db import models
+from django.db.models import Avg, Sum
+from django.utils import timezone
 
-from game.models import Game
-from fleet.models import Campaign, Customer
 from backend.common import DONATION_FORMULAS
+from fleet.models import Campaign, Customer
+from game.models import Game
 
 from .payment import Payment
 from .session import Session
@@ -24,15 +27,33 @@ class Terminal(models.Model):
     campaigns = models.ManyToManyField(Campaign, related_name="terminals")
     games = models.ManyToManyField(Game, related_name="terminals")
     location = models.CharField(max_length=255, null=True, blank=True)
+    play_timer = models.BigIntegerField(default=10)  # Time (in minutes)
+    free_mode_text = models.CharField(max_length=250, blank=True, null=True)
+
+    # Status
     is_active = models.BooleanField(default=False)
     is_on = models.BooleanField(default=False)
     is_playing = models.BooleanField(default=False)
     version = models.CharField(max_length=10, null=True, blank=True)
     is_archived = models.BooleanField(default=False)
+
+    # Commands
     check_for_updates = models.BooleanField(default=False)
-    restart = models.BooleanField(default=False)
-    play_timer = models.BigIntegerField(default=10) # Time (in minutes)
-    free_mode_text = models.CharField(max_length=250, blank=True, null=True)
+    restart = models.BooleanField(
+        default=False, verbose_name="Dire à la borne de redémarrer une fois"
+    )
+    restart_every_day_from = models.TimeField(
+        null=True, blank=True, verbose_name="Redémarrer tous les jours à partir de"
+    )
+    restart_every_day_until = models.TimeField(
+        null=True, blank=True, verbose_name="Redémarrer tous les jours jusqu'à"
+    )
+    last_restarted = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="La borne a redémarré pour la dernière fois le",
+        editable=False,
+    )
 
     # Payment terminal
 
@@ -50,7 +71,7 @@ class Terminal(models.Model):
         max_length=10,
         choices=PAYMENT_TERMINAL_TYPE_CHOICES,
         default=PAYTER,
-        verbose_name="Type de terminal de paiement"
+        verbose_name="Type de terminal de paiement",
     )
 
     donation_min_amount = models.IntegerField(default=1)
@@ -127,3 +148,49 @@ class Terminal(models.Model):
         return "Terminal {} : {}".format(
             self.pk, "Active" if self.is_active else "False"
         )
+
+    @property
+    def should_restart(self):
+        if self.restart:
+            return True
+
+        if self.restart_every_day_from and self.restart_every_day_until:
+
+            def is_datetime_between_times(
+                _datetime: datetime.datetime,
+                start_time: datetime.time,
+                end_time: datetime.time,
+            ):
+                restart_today_from = datetime.datetime.combine(
+                    datetime.date.today(), start_time
+                )
+
+                restart_today_until = datetime.datetime.combine(
+                    datetime.date.today(), end_time
+                )
+
+                if restart_today_from <= _datetime <= restart_today_until:
+                    return True
+
+                elif restart_today_from > restart_today_until:
+                    if _datetime.date() == datetime.date.today() and (
+                        _datetime.time() >= restart_today_from.time()
+                        or _datetime.time() <= restart_today_until.time()
+                    ):
+                        return True
+
+            if is_datetime_between_times(
+                timezone.now(),
+                self.restart_every_day_from,
+                self.restart_every_day_until,
+            ):
+                if self.last_restarted is None:
+                    return True
+
+                return not is_datetime_between_times(
+                    self.last_restarted,
+                    self.restart_every_day_from,
+                    self.restart_every_day_until,
+                )
+
+        return False
