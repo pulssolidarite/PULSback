@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('terminal', '0024_auto_20230606_1516'),
+        ("terminal", "0024_auto_20230606_1516"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='terminal',
-            name='restart',
+            model_name="terminal",
+            name="restart",
             field=models.BooleanField(default=False),
         ),
     ]
