@@ -58,6 +58,8 @@ class TerminalAdmin(admin.ModelAdmin):
 
     # Form view
 
+    readonly_fields = ("last_restarted",)
+
     fieldsets = (
         (
             None,
